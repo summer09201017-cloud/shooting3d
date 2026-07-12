@@ -246,7 +246,9 @@ export class AudioManager {
     lp.frequency.value = 620;
     lp.Q.value = 0.4;
     const g = ctx.createGain();
-    g.gain.value = 0.07; // 射箭場比拳擊館安靜一點
+    // 07-12 實測(AnalyserNode):boxing3d 原值 0.07×master0.18 只剩 -58dB 根本聽不到;
+    // 低通會再吃掉大半能量,基準增益要開到 0.65 才是「聽得見的環境人聲浪」(RMS≈-40dB)
+    g.gain.value = 0.65;
     src.connect(lp);
     lp.connect(g);
     g.connect(this.masterGain);
@@ -268,9 +270,9 @@ export class AudioManager {
       const g = this._crowd.gain.gain;
       const now = ctx.currentTime;
       g.cancelScheduledValues(now);
-      g.setValueAtTime(Math.max(0.07, g.value), now);
-      g.linearRampToValueAtTime(0.07 + 0.34 * strength, now + 0.1);
-      g.exponentialRampToValueAtTime(0.07, now + 2.6);
+      g.setValueAtTime(Math.max(0.65, g.value), now);
+      g.linearRampToValueAtTime(0.65 + 2.2 * strength, now + 0.1);
+      g.exponentialRampToValueAtTime(0.65, now + 2.6);
     }
     // 零星高頻拍手/口哨疊在浪上
     const buf = this.makeNoiseBuffer();
@@ -283,7 +285,7 @@ export class AudioManager {
       const g2 = ctx.createGain();
       const t0 = ctx.currentTime + Math.random() * 0.6;
       g2.gain.setValueAtTime(0.0001, t0);
-      g2.gain.exponentialRampToValueAtTime(0.1 * strength, t0 + 0.01);
+      g2.gain.exponentialRampToValueAtTime(0.5 * strength, t0 + 0.01);
       g2.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.06);
       src.connect(hp);
       hp.connect(g2);
