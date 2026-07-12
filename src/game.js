@@ -139,19 +139,20 @@ function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, hair 
     emissiveIntensity: 0.5,
   });
 
-  // 身體雙節:胸腔(上)+腰部(下)——腰部是獨立段,之後可做前傾/轉腰
+  // 身體雙節:胸腔(上)+腰部(下)——腰要收進去(07-12 使用者點名不要水桶腰):
+  // 胸寬 0.3 → 腰最細 0.21 → 髖再放回 0.27,側影有曲線
   const chest = new THREE.Mesh(new THREE.CapsuleGeometry(0.3, 0.5, 6, 12), shirtMat);
   chest.position.y = 1.24;
   rig.add(chest);
   const waist = new THREE.Group();
   waist.position.y = 0.96;
-  const belly = new THREE.Mesh(new THREE.CylinderGeometry(0.29, 0.33, 0.3, 14), shirtMat);
+  const belly = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.21, 0.3, 14), shirtMat);
   belly.position.y = -0.05;
   waist.add(belly);
-  const hip = new THREE.Mesh(new THREE.CylinderGeometry(0.33, 0.3, 0.2, 14), pantsMat);
+  const hip = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.27, 0.2, 14), pantsMat);
   hip.position.y = -0.26;
   waist.add(hip);
-  const beltLine = new THREE.Mesh(new THREE.CylinderGeometry(0.335, 0.335, 0.06, 14), new THREE.MeshStandardMaterial({ color: 0x5a3d22, roughness: 0.6 }));
+  const beltLine = new THREE.Mesh(new THREE.CylinderGeometry(0.225, 0.225, 0.06, 14), new THREE.MeshStandardMaterial({ color: 0x5a3d22, roughness: 0.6 }));
   beltLine.position.y = -0.15;
   waist.add(beltLine);
   rig.add(waist);
