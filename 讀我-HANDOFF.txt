@@ -1,0 +1,39 @@
+============================================================
+讀我 — HANDOFF(archery3d:3D 射箭,夏奧)
+建檔日期:2026-07-12(agape250 機起骨架)
+GitHub 帳號:summer09201017-cloud。GitHub 是唯一真相;桌面 zip 只是備援快照。
+============================================================
+
+【這是什麼】
+3D 射箭(Three.js,3d-game-kit 範式,骨架照抄 籃球CO/baseball3d)。
+戰略定位:它是「蓄力→放開+拋物線」家族的**地基**——使用者已拍板下一波 3D 運動
+= 鉛球/鐵餅/標槍/舉重/高爾夫,全部重用這套核心(見記憶 next-3d-sports-targets)。
+
+【現在到哪(誠實狀態:半成品,不能玩)】
+✅ src/game.js——已整支重寫成射箭引擎(ArcheryGame):
+   - 玩法:按住拉弓蓄力→移動瞄準→放開放箭;準星晃動(拉滿越久晃越大=屏息機制);
+     順逆風(風旗+HUD 文字,往反方向瞄準補償);拋物線箭道;十環靶計分。
+   - ★判定=畫面(鐵則4):放箭當下先算命中點(瞄準+晃動+風/powerFactor),再把箭「演」到那個點。
+   - 五難度檔(kids~hard:距離/晃動/風力/瞄準輔助)+3 模式(practice 無限/standard 6局×3箭/bullseye 10箭紅心)。
+   - 臉部鐵則 makePerson(眼白+瞳孔+眉+微笑+膚色 emissive)、射手拉弓姿勢、少量場邊有臉觀眾、
+     相機 4 視角(瞄準鎖射手後方)+lerp、localStorage 存讀檔。
+❌ 還沒做(接手第一件事):
+   1. src/main.js——還是籃球CO 的 UI 接線(import BasketballGame 會直接炸)!要改接 ArcheryGame 的
+      HUD 契約(onHudUpdate 欄位見 game.js pushHud:totalScore/endNumber/drawPower/steadiness/windText/lastRing…)。
+   2. index.html——還是籃球版面;要改成射箭 HUD(拉弓力道條/穩定度/風向/局數箭數/靶環結果)。
+   3. voicePhrases.js/voice.js——詞庫還是籃球播報;要換射箭句(「十環!正中紅心!」…)再 gen-voice 烤 mp3。
+   4. manifest/icon/標題/run.bat 改名;⚠ 注意 storage.js 的 localStorage key 還是 fullcourt-3d-*,要改 archery3d-*。
+   5. 觀眾聲:audio.js 是籃球CO 版(有完整觀眾聲 API 可直接用);記得照 07-11 鐵則接 startCrowd/crowdCheer。
+   6. ★關節人物鐵則(07-12 拍板)在 boxing3d 做對之後,這裡的 makePerson 也要跟上雙節肢體。
+
+【怎麼跑】
+npm install → npm run dev(Vite);build:npm run build。
+測試:尚無(骨架期);驗收用 Playwright 照 canvas-playwright-verify skill(dev hook 之後接線時記得掛 window.__archery3d)。
+
+【本機地雷】
+- 骨架抄自 籃球CO(Desktop\0712早 工作夾),PWA SW 已有 localhost 守門。
+- 部署:之後 netlify sites:create 建 hfpc-archery3d(手動站 --no-build 慣例)。
+
+【下一步(依序)】
+1. main.js/index.html UI 接線(讓它能玩)→ 2. 觀眾聲接線 → 3. 播報詞庫+烤 mp3 →
+4. 難度實測(五檔)→ 5. 部署+進大廳 → 6. fork 出鉛球/鐵餅/標槍(換投擲物+場地,核心不動)。

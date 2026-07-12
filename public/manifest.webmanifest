@@ -1,0 +1,24 @@
+{
+  "name": "3D 全場籃球",
+  "short_name": "3D籃球",
+  "description": "可在手機與 PC 遊玩的 3D 全場 5v5 籃球遊戲。",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09131d",
+  "theme_color": "#0d1f2b",
+  "orientation": "landscape",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
