@@ -209,6 +209,17 @@ function handleGameEvent(event) {
       pushCommentary(line.sub, event.isGold ? "hot" : event.miss ? "cool" : "info", line.say);
       break;
     }
+    case "hit-crowd": {
+      audio.thud(0.8);
+      audio.whistle();
+      audio.vibrate([50, 40, 50]);
+      pushCommentary(
+        "哎呀!射到觀眾了——還好是玩具箭,快說對不起!",
+        "cool",
+        "哎呀!射到觀眾了,趕快說對不起!",
+      );
+      break;
+    }
     case "end-complete": {
       audio.buzzer();
       pushCommentary(`第 ${event.endNumber} 局結束,本局 ${event.endScore} 分!`, "info", "本局結束!");

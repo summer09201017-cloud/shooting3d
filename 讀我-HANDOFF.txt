@@ -30,6 +30,11 @@ GitHub 帳號:summer09201017-cloud/archery3d。GitHub 是唯一真相;桌面 zip
 ✅ 過肩瞄準視角(射手偏畫面右、靶+準星在中央);準星依距離放大。
 ✅ 中靶後停靶面特寫(07-12 拍板):phase "scored" **不自動前進**——玩家點畫面/按空白鍵才進下一箭;
    最新一箭套黃色脈動圈(latestMarker),脫靶不標。
+✅ 判定=畫面修正(07-12):視覺靶與計分中心對齊(骨架曾抬高 0.65 害黃心算低分);
+   逐色驗證 黃10-9>紅8-7>藍6-5>黑4-3>白2-1>靶外0。
+✅ 可以射觀眾(07-12 拍板,喜劇橋段):滑鼠指到觀眾準星跟過去,射中=玩具箭彈開、
+   觀眾誇張向後暈倒 2.6s 再爬起、不計分但消耗一箭、字幕+人聲提示道歉。
+   ⚠ TTS 雷:「,對不起」結尾會讓 edge-tts 斷流,措辭用「趕快說對不起!」。
 ✅ 改名件組:manifest/icon(箭靶)/title/run.bat/package.json/SW cache=archery3d-v1/
    localStorage=archery3d-settings-v1 & archery3d-save-v1。
 ✅ 播報人聲:射箭詞庫 12 句已用雲哲神經語音烤成 mp3(public/voice/,舊籃球 24 句已清),

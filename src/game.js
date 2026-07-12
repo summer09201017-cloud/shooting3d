@@ -378,6 +378,8 @@ export class ArcheryGame {
     this.arrowFlight = null; // {mesh, from, to, t, dur}
     this.scoreTimer = 0;
     this.betweenTimer = 0;
+    this.crowdAim = null; // 指到觀眾時={person, point}(07-12 拍板:可以射觀眾——玩具箭喜劇橋段)
+    this.crowdReactions = []; // 被射中的觀眾暈倒/爬起動畫
 
     // 比賽計分
     this.totalScore = 0;
@@ -658,6 +660,7 @@ export class ArcheryGame {
     this.drawT = 0;
     this.holdAtFull = 0;
     this.power = 0;
+    this.crowdAim = null;
     this.aim.set(0, TARGET_CENTER_Y);
     this.rollWind();
     this.message = "按住拉弓,移動瞄準,放開放箭。";
@@ -697,8 +700,56 @@ export class ArcheryGame {
     this.fireArrow();
   }
 
+  // 射向觀眾(07-12 拍板):玩具箭喜劇橋段——不計分、觀眾誇張暈倒再爬起來、提示道歉
+  fireAtCrowd() {
+    const target = this.crowdAim;
+    const impact = target.point.clone();
+    const arrow = makeArrow(1);
+    const from = BOW_TIP.clone();
+    arrow.position.copy(from);
+    this.scene.add(arrow);
+    const dist = from.distanceTo(impact);
+    this.arrowFlight = {
+      mesh: arrow,
+      from,
+      to: impact,
+      t: 0,
+      dur: dist / (30 + this.power * 26),
+      arc: dist * 0.02,
+      crowdPerson: target.person,
+    };
+    this.phase = "flying";
+    this.nockedArrow.visible = false;
+    this.emitEvent("release", { power: this.power });
+    this.message = "放箭!……咦,方向不太對?";
+    this.pushHud();
+  }
+
+  resolveCrowdHit(flight) {
+    this.scene.remove(flight.mesh); // 玩具箭彈開,不插在人身上
+    this.arrowFlight = null;
+    // 同一位觀眾重複被射:重播反應
+    const existing = this.crowdReactions.find((r) => r.group === flight.crowdPerson);
+    if (existing) existing.t = 0;
+    else this.crowdReactions.push({ group: flight.crowdPerson, t: 0 });
+
+    this.lastRing = 0;
+    this.arrowInEnd += 1;
+    this.arrowsShotTotal += 1;
+    this.latestMarker.visible = false;
+    this.emitEvent("hit-crowd");
+    this.phase = "scored";
+    this.cameraView = 0; // 留在射手後方,看得到觀眾暈倒又爬起來
+    this.message = "哎呀!射到觀眾了——還好是玩具箭!快說對不起(點一下畫面繼續)";
+    this.pushHud();
+  }
+
   // ★判定=畫面:先算命中點,再把箭演到那個點
   fireArrow() {
+    if (this.crowdAim) {
+      this.fireAtCrowd();
+      return;
+    }
     const preset = DIFFICULTY_PRESETS[this.difficulty];
     const powerFactor = 0.6 + this.power * 0.9; // 拉越滿→箭越快→風/晃影響越小
     // 命中點 = 瞄準 + 放箭當下的晃動 + 風漂(可被反向瞄準補償)
@@ -911,6 +962,21 @@ export class ArcheryGame {
       this.latestMarker.scale.setScalar(pulse);
     }
 
+    // 被射中的觀眾:誇張向後暈倒(繞腳跟)→躺一下→爬起來,全程喜劇無傷
+    for (const r of this.crowdReactions) {
+      r.t += delta;
+      const fall = clamp(r.t / 0.35, 0, 1);
+      const recover = clamp((r.t - 1.8) / 0.6, 0, 1);
+      r.group.rotation.x = -1.25 * fall * (1 - recover);
+    }
+    this.crowdReactions = this.crowdReactions.filter((r) => {
+      if (r.t >= 2.6) {
+        r.group.rotation.x = 0;
+        return false;
+      }
+      return true;
+    });
+
     // 鍵盤輸入(空白鍵拉弓/放箭、方向鍵瞄準、V 視角)
     this.handleKeys(delta);
 
@@ -946,6 +1012,15 @@ export class ArcheryGame {
   updateAim(delta) {
     if (!this.pointerNDC) return;
     this.raycaster.setFromCamera(this.pointerNDC, this.camera);
+    // 先看有沒有指到觀眾(可以射觀眾——玩具箭,不計分,喜劇反應)
+    const crowdHits = this.crowd ? this.raycaster.intersectObjects(this.crowd.children, true) : [];
+    if (crowdHits.length) {
+      let root = crowdHits[0].object;
+      while (root.parent && root.parent !== this.crowd) root = root.parent;
+      this.crowdAim = { person: root, point: crowdHits[0].point.clone() };
+      return;
+    }
+    this.crowdAim = null;
     const hit = new THREE.Vector3();
     if (this.raycaster.ray.intersectPlane(this._targetPlane, hit)) {
       this.aim.x = clamp(hit.x, -TARGET_R * 1.7, TARGET_R * 1.7);
@@ -965,13 +1040,24 @@ export class ArcheryGame {
     ahead.y += Math.sin(Math.PI * Math.min(1, t + 0.02)) * f.arc;
     f.mesh.position.copy(pos);
     f.mesh.lookAt(ahead);
-    if (f.t >= 1) this.resolveImpact();
+    if (f.t >= 1) {
+      if (f.crowdPerson) this.resolveCrowdHit(f);
+      else this.resolveImpact();
+    }
   }
 
   updateReticle() {
     const aiming = this.phase === "ready" || this.phase === "drawing";
     this.reticle.visible = aiming;
     if (!aiming) return;
+    if (this.crowdAim) {
+      // 指到觀眾:準星貼在他身上(近距離,不放大)
+      this.reticle.position.copy(this.crowdAim.point);
+      this.reticle.position.z -= 0.15;
+      this.reticle.scale.setScalar(Math.max(1, this.crowdAim.point.z / 7));
+      this.reticle.lookAt(this.camera.position);
+      return;
+    }
     const sway = this.currentSway();
     this.reticleOffset.copy(sway);
     this.reticle.position.set(this.aim.x + sway.x, this.aim.y + sway.y, this.distance - 0.06);
