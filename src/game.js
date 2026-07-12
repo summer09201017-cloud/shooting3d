@@ -161,6 +161,15 @@ function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, hair 
   head.position.y = 1.86;
   rig.add(head);
 
+  // 耳朵(所有人物都要有,07-12 拍板):頭兩側膚色半橢球,壓扁貼頭
+  const earL = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 10), skinMat);
+  earL.scale.set(0.45, 1, 0.8);
+  earL.position.set(-0.245, 1.85, 0);
+  rig.add(earL);
+  const earR = earL.clone();
+  earR.position.x = 0.245;
+  rig.add(earR);
+
   // 頭髮(所有人物都要有,07-12 拍板):球冠罩住頭頂+後腦,前額露出臉
   const hairMat = new THREE.MeshStandardMaterial({ color: hair, roughness: 0.85 });
   const hairCap = new THREE.Mesh(

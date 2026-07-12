@@ -3,3 +3,6 @@ dist
 .npm-cache
 .playwright-mcp
 *.jpeg
+
+# Local Netlify folder
+.netlify
