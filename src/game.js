@@ -1019,8 +1019,9 @@ export class ArcheryGame {
       desiredLook = new THREE.Vector3(this.aim.x * 0.75, TARGET_CENTER_Y, this.distance);
     } else if (this.cameraView === 1) {
       // 靶面特寫(07-12 拍板再拉近:靶面幾乎滿框,看清每支箭)
-      desiredPos = new THREE.Vector3(0, TARGET_CENTER_Y, this.distance - 2.3);
-      desiredLook = centerLook;
+      // 看點抬高→靶在畫面下半,不被頂部計分板/字幕擋住(07-12 拍板)
+      desiredPos = new THREE.Vector3(0, TARGET_CENTER_Y + 0.3, this.distance - 2.3);
+      desiredLook = new THREE.Vector3(0, TARGET_CENTER_Y + 0.62, this.distance);
     } else if (this.cameraView === 2) {
       // 高空俯瞰
       desiredPos = new THREE.Vector3(2.4, 15, this.distance * 0.5);
