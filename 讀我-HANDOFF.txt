@@ -24,17 +24,18 @@ GitHub 帳號:summer09201017-cloud/archery3d。GitHub 是唯一真相;桌面 zip
 ✅ 過肩瞄準視角(射手偏畫面右、靶+準星在中央);準星依距離放大。
 ✅ 改名件組:manifest/icon(箭靶)/title/run.bat/package.json/SW cache=archery3d-v1/
    localStorage=archery3d-settings-v1 & archery3d-save-v1。
-✅ voicePhrases.js 已換射箭詞庫(12 句);voice.js 缺 mp3 時靜默只出字幕(人聲鐵律不破)。
+✅ 播報人聲:射箭詞庫 12 句已用雲哲神經語音烤成 mp3(public/voice/,舊籃球 24 句已清),
+   12/12 manifest 對映驗證過;voice.js 缺 mp3 時靜默只出字幕(人聲鐵律不破)。
 ❌ 還沒做(依序):
-   1. 播報 mp3 還沒烤:node scripts/gen-voice.mjs(雲哲/曉臻)→ public/voice/;烤完 /tts-check。
-   2. 觀眾聲:audio.js 是籃球CO 版但**沒有** startCrowd/crowdCheer API,要照 07-11 鐵則從
+   1. 觀眾聲:audio.js 是籃球CO 版但**沒有** startCrowd/crowdCheer API,要照 07-11 鐵則從
       racket3d/boxing3d 版把觀眾環境音+喝采浪搬過來再接 impact 事件。
-   3. 難度實測五檔(difficulty-balancer 或手玩)——風/晃動量值只是首版拍腦袋。
-   4. 部署:netlify sites:create hfpc-archery3d(手動站 --no-build 慣例)→ 進大廳。
-   5. fork 出鉛球/鐵餅/標槍(換投擲物+場地,核心不動)。
+   2. 難度實測五檔(difficulty-balancer 或手玩)——風/晃動量值只是首版拍腦袋。
+   3. 部署:netlify sites:create hfpc-archery3d(手動站 --no-build 慣例)→ 進大廳。
+   4. fork 出鉛球/鐵餅/標槍(換投擲物+場地,核心不動)。
 
 【怎麼跑】
-npm install → npm run dev(Vite);build:npm run build(2.8s 綠)。
+雙擊 run.bat(裝依賴+起 dev+開瀏覽器);或 npm install → npm run dev。build:npm run build(2.8s 綠)。
+播報詞庫改了之後雙擊 gen-voice.bat 重烤(累加式,已有的 mp3 跳過;需網路)。
 驗收:Playwright 照 canvas-playwright-verify;window.__archery3d 可凍結/快進
 (例:phase="drawing";drawT=10;releaseDraw() 決定性放箭)。
 
