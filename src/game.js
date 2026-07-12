@@ -544,18 +544,20 @@ export class ArcheryGame {
       ring.rotation.y = Math.PI; // CircleGeometry 正面朝局部 +z,翻半圈讓正面隨 group 朝射手
       group.add(ring);
     }
-    // 立架
+    // 立架(從靶底接到地面)
+    const standH = TARGET_CENTER_Y - TARGET_R;
     const stand = new THREE.Mesh(
-      new THREE.BoxGeometry(0.1, TARGET_CENTER_Y, 0.1),
+      new THREE.BoxGeometry(0.1, standH, 0.1),
       new THREE.MeshStandardMaterial({ color: 0x6b4a2a }),
     );
-    stand.position.y = -TARGET_CENTER_Y / 2 - TARGET_R * 0.9;
+    stand.position.y = -(TARGET_R + standH / 2);
     group.add(stand);
 
     group.rotation.y = Math.PI; // 靶面朝向射手(-z)
     this.targetGroup = group;
-    // 重建時就定位(setDistance 可能比 buildTarget 先跑,否則新靶掉在原點)
-    if (this.distance) group.position.set(0, TARGET_CENTER_Y + TARGET_R * 0.9, this.distance);
+    // ★判定=畫面:靶「畫面中心」必須=計分中心 TARGET_CENTER_Y(修 07-12 bug:視覺靶被抬高 0.65,
+    // 害「射中下方黑環卻算高分、黃心算低分」——計分沒錯,是畫面騙人)
+    if (this.distance) group.position.set(0, TARGET_CENTER_Y, this.distance);
     this.scene.add(group);
     this.plantedArrows = [];
   }
@@ -583,7 +585,7 @@ export class ArcheryGame {
 
   setDistance(dist) {
     this.distance = dist;
-    if (this.targetGroup) this.targetGroup.position.set(0, TARGET_CENTER_Y + TARGET_R * 0.9, dist);
+    if (this.targetGroup) this.targetGroup.position.set(0, TARGET_CENTER_Y, dist);
     if (this.flag) this.flag.position.set(-(TARGET_R + 1.4), 0, dist - 0.5);
     this._targetPlane.constant = dist; // plane normal (0,0,-1): -z + d = 0 → z = d
   }
@@ -1019,9 +1021,9 @@ export class ArcheryGame {
       desiredLook = new THREE.Vector3(this.aim.x * 0.75, TARGET_CENTER_Y, this.distance);
     } else if (this.cameraView === 1) {
       // 靶面特寫(07-12 拍板再拉近:靶面幾乎滿框,看清每支箭)
-      // 看點抬高→靶在畫面下半,不被頂部計分板/字幕擋住(07-12 拍板)
-      desiredPos = new THREE.Vector3(0, TARGET_CENTER_Y + 0.3, this.distance - 2.3);
-      desiredLook = new THREE.Vector3(0, TARGET_CENTER_Y + 0.62, this.distance);
+      // 看點抬高→靶在畫面下半,不被頂部計分板/字幕擋住(07-12 拍板;數值隨靶心=1.38 重校)
+      desiredPos = new THREE.Vector3(0, TARGET_CENTER_Y - 0.35, this.distance - 2.3);
+      desiredLook = new THREE.Vector3(0, TARGET_CENTER_Y - 0.03, this.distance);
     } else if (this.cameraView === 2) {
       // 高空俯瞰
       desiredPos = new THREE.Vector3(2.4, 15, this.distance * 0.5);
