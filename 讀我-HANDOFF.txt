@@ -18,6 +18,7 @@ GitHub 帳號:summer09201017-cloud/archery3d。GitHub 是唯一真相;桌面 zip
    - createLimb 雙節肢體:上臂/大腿(pivot=肩髖)+肘/膝(joint)+前臂/小腿+手掌/腳掌;
    - 手臂上臂=衣袖色、前臂手掌=膚色;腿=褲色+鞋;
    - 身體雙節:胸腔+腰部段(belly+髖+腰帶線);
+   - 頭髮(07-12 拍板「所有人物都要有」):球冠罩頭頂+後腦、額頭露臉,觀眾髮色隨機 6 色;
    - 射手開弓:左臂持弓打直、右肘隨拉弓折向臉頰、腰微前傾;觀眾站姿膝肘微彎。
 ✅ 修掉骨架三個真 bug:①fireArrow impactX 是 const 被 aimAssist +=(kids~normal 一放箭就 crash)
    ②buildTarget 重建後沒重定位(開賽靶掉到射手腳下)③靶環放局部 -z 被背板整個蓋住(只見米色板)。
@@ -26,12 +27,16 @@ GitHub 帳號:summer09201017-cloud/archery3d。GitHub 是唯一真相;桌面 zip
    localStorage=archery3d-settings-v1 & archery3d-save-v1。
 ✅ 播報人聲:射箭詞庫 12 句已用雲哲神經語音烤成 mp3(public/voice/,舊籃球 24 句已清),
    12/12 manifest 對映驗證過;voice.js 缺 mp3 時靜默只出字幕(人聲鐵律不破)。
+✅ 觀眾聲(07-11 鐵則):startCrowd/stopCrowd/crowdCheer 已從 boxing3d 搬進 audio.js;
+   開賽起環境音、7 環+小歡呼、金心大喝采、紅心/終場全場沸騰、回選單收音。
+✅ 難度五檔已自我對戰校正(每檔 120 箭 × 生手/熟練兩模型,結果寫在 DIFFICULTY_PRESETS 註解):
+   生手平均環 kids 7.4 → hard 4.2(hard 脫靶 13%),熟練 9.3 → 7.1(hard 金心 24%)——
+   每檔有感、幼兒有成就感、職業有張力。
+✅ 修 voice.js WebMediaPlayer 洩漏:每句 new Audio 會被 Chrome 封鎖(自我對戰 1200 箭踩爆),
+   改單一 Audio 元素重用——長場次課堂也安全。
 ❌ 還沒做(依序):
-   1. 觀眾聲:audio.js 是籃球CO 版但**沒有** startCrowd/crowdCheer API,要照 07-11 鐵則從
-      racket3d/boxing3d 版把觀眾環境音+喝采浪搬過來再接 impact 事件。
-   2. 難度實測五檔(difficulty-balancer 或手玩)——風/晃動量值只是首版拍腦袋。
-   3. 部署:netlify sites:create hfpc-archery3d(手動站 --no-build 慣例)→ 進大廳。
-   4. fork 出鉛球/鐵餅/標槍(換投擲物+場地,核心不動)。
+   1. 部署:netlify sites:create hfpc-archery3d(手動站 --no-build 慣例)→ 進大廳。
+   2. fork 出鉛球/鐵餅/標槍(換投擲物+場地,核心不動)。
 
 【怎麼跑】
 雙擊 run.bat(裝依賴+起 dev+開瀏覽器);或 npm install → npm run dev。build:npm run build(2.8s 綠)。

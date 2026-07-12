@@ -220,4 +220,77 @@ export class AudioManager {
     });
   }
 
+  // ── 觀眾:環境人聲+喝采浪(07-11 鐵則,搬自 boxing3d/racket3d 範式) ──
+  makeNoiseBuffer() {
+    const ctx = this.ensureContext();
+    if (!ctx) return null;
+    if (this._noiseBuf) return this._noiseBuf;
+    const len = ctx.sampleRate * 2;
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * (0.6 + 0.4 * Math.random());
+    this._noiseBuf = buf;
+    return buf;
+  }
+
+  startCrowd() {
+    const ctx = this.ensureContext();
+    if (!ctx || this._crowd) return;
+    const buf = this.makeNoiseBuffer();
+    if (!buf) return;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 620;
+    lp.Q.value = 0.4;
+    const g = ctx.createGain();
+    g.gain.value = 0.07; // 射箭場比拳擊館安靜一點
+    src.connect(lp);
+    lp.connect(g);
+    g.connect(this.masterGain);
+    src.start();
+    this._crowd = { src, gain: g };
+  }
+
+  stopCrowd() {
+    if (!this._crowd) return;
+    try { this._crowd.src.stop(); } catch { /* ignore */ }
+    this._crowd = null;
+  }
+
+  crowdCheer(strength = 1) {
+    const ctx = this.ensureContext();
+    if (!ctx || !this.enabled) return;
+    this.startCrowd();
+    if (this._crowd) {
+      const g = this._crowd.gain.gain;
+      const now = ctx.currentTime;
+      g.cancelScheduledValues(now);
+      g.setValueAtTime(Math.max(0.07, g.value), now);
+      g.linearRampToValueAtTime(0.07 + 0.34 * strength, now + 0.1);
+      g.exponentialRampToValueAtTime(0.07, now + 2.6);
+    }
+    // 零星高頻拍手/口哨疊在浪上
+    const buf = this.makeNoiseBuffer();
+    for (let i = 0; i < 10; i += 1) {
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      const hp = ctx.createBiquadFilter();
+      hp.type = "highpass";
+      hp.frequency.value = 1600;
+      const g2 = ctx.createGain();
+      const t0 = ctx.currentTime + Math.random() * 0.6;
+      g2.gain.setValueAtTime(0.0001, t0);
+      g2.gain.exponentialRampToValueAtTime(0.1 * strength, t0 + 0.01);
+      g2.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.06);
+      src.connect(hp);
+      hp.connect(g2);
+      g2.connect(this.masterGain);
+      src.start(t0);
+      src.stop(t0 + 0.1);
+    }
+  }
+
 }

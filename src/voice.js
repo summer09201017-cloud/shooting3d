@@ -31,9 +31,13 @@ export function speakLine(text) {
   const path = manifest[voiceKey(text)];
   if (!path) return; // 沒烤過的句子=只出字幕,不用機器聲
   try {
-    if (current) current.pause();
-    current = new Audio("./" + path);
-    current.volume = 0.95;
+    // 單一 Audio 元素重用:每句 new Audio 會累積 WebMediaPlayer,長場次被 Chrome 封鎖
+    if (!current) {
+      current = new Audio();
+      current.volume = 0.95;
+    }
+    current.pause();
+    current.src = "./" + path;
     current.play().catch(() => {});
   } catch {
     // ignore

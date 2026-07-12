@@ -9,12 +9,14 @@ import { loadSettings, saveSettings, loadSavedGame, saveGameState } from "./stor
 // 再把箭「演」到那個點——畫面說不通的分數=bug。
 
 // ---------- 可調量值(開場 UI 可選,預設只是預設) ----------
+// 量值經 2026-07-12 自我對戰校正(80 箭×2 玩家模型:生手 σ0.22 不補風/熟練 σ0.09 補風 55%):
+// 目標梯度=生手在 kids 有成就感(平均 8 環+),熟練在 hard 有張力(平均 ~6.5、會脫靶)。
 export const DIFFICULTY_PRESETS = {
-  kids: { distance: 13, swayBase: 0.015, swayGrow: 0.12, wind: 0.02, drawDuration: 0.5, aimAssist: 0.55 },
-  child: { distance: 15, swayBase: 0.03, swayGrow: 0.22, wind: 0.05, drawDuration: 0.58, aimAssist: 0.4 },
-  easy: { distance: 18, swayBase: 0.06, swayGrow: 0.4, wind: 0.11, drawDuration: 0.64, aimAssist: 0.25 },
-  normal: { distance: 22, swayBase: 0.1, swayGrow: 0.62, wind: 0.19, drawDuration: 0.7, aimAssist: 0.12 },
-  hard: { distance: 26, swayBase: 0.16, swayGrow: 0.95, wind: 0.32, drawDuration: 0.76, aimAssist: 0 },
+  kids: { distance: 13, swayBase: 0.012, swayGrow: 0.1, wind: 0.015, drawDuration: 0.5, aimAssist: 0.68 },
+  child: { distance: 15, swayBase: 0.03, swayGrow: 0.25, wind: 0.06, drawDuration: 0.58, aimAssist: 0.42 },
+  easy: { distance: 18, swayBase: 0.07, swayGrow: 0.45, wind: 0.14, drawDuration: 0.64, aimAssist: 0.2 },
+  normal: { distance: 22, swayBase: 0.12, swayGrow: 0.8, wind: 0.26, drawDuration: 0.7, aimAssist: 0.06 },
+  hard: { distance: 30, swayBase: 0.2, swayGrow: 1.15, wind: 0.42, drawDuration: 0.78, aimAssist: 0 },
 };
 
 export const DIFFICULTY_LABELS = {
@@ -120,7 +122,9 @@ function createLimb({
   return { pivot, upper, joint, lower, end: endMesh };
 }
 
-function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, scale = 1 } = {}) {
+const HAIR_COLORS = [0x2b2119, 0x4a3120, 0x151515, 0x5e4630, 0x7a5636, 0x3a3a45];
+
+function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, hair = 0x2b2119, scale = 1 } = {}) {
   const group = new THREE.Group();
   const rig = new THREE.Group();
   group.add(rig);
@@ -155,6 +159,23 @@ function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, scale
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.25, 18, 18), skinMat);
   head.position.y = 1.86;
   rig.add(head);
+
+  // 頭髮(所有人物都要有,07-12 拍板):球冠罩住頭頂+後腦,前額露出臉
+  const hairMat = new THREE.MeshStandardMaterial({ color: hair, roughness: 0.85 });
+  const hairCap = new THREE.Mesh(
+    new THREE.SphereGeometry(0.265, 18, 12, 0, Math.PI * 2, 0, Math.PI * 0.52),
+    hairMat,
+  );
+  hairCap.position.y = 1.87;
+  hairCap.rotation.x = -0.38; // 往後腦傾,露出額頭
+  rig.add(hairCap);
+  // 後腦下緣補一圈,側後方不露膚
+  const hairBack = new THREE.Mesh(
+    new THREE.SphereGeometry(0.255, 16, 8, Math.PI * 0.7, Math.PI * 1.6, Math.PI * 0.35, Math.PI * 0.38),
+    hairMat,
+  );
+  hairBack.position.y = 1.86;
+  rig.add(hairBack);
 
   // 臉:貼 +z(與身體同向)
   const faceDark = new THREE.MeshBasicMaterial({ color: 0x25201a });
@@ -500,7 +521,12 @@ export class ArcheryGame {
     const shirts = [0xd98a3d, 0x3d78d9, 0xc94f8f, 0x4fae6a, 0xb0552f];
     for (const side of [-1, 1]) {
       for (let i = 0; i < 4; i += 1) {
-        const p = makePerson({ shirt: shirts[(i + (side > 0 ? 2 : 0)) % shirts.length], pants: 0x2c3340, scale: 0.9 });
+        const p = makePerson({
+          shirt: shirts[(i + (side > 0 ? 2 : 0)) % shirts.length],
+          pants: 0x2c3340,
+          hair: HAIR_COLORS[(i * 2 + (side > 0 ? 3 : 0)) % HAIR_COLORS.length],
+          scale: 0.9,
+        });
         p.group.position.set(side * 4.2, 0, 1.5 + i * 2.1);
         p.group.rotation.y = side === -1 ? Math.PI / 2 : -Math.PI / 2; // 臉朝射道
         this.crowd.add(p.group);

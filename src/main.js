@@ -121,6 +121,7 @@ function syncOverlay(overlay) {
 
 function openHomeScreen() {
   game.openHomeMenu();
+  audio.stopCrowd(); // 回選單收掉觀眾環境音
   syncGameConfigurationToMenu();
   ui.homeScreen.classList.add("visible");
 }
@@ -179,6 +180,7 @@ function handleGameEvent(event) {
   switch (event.type) {
     case "match-start": {
       audio.whistle();
+      audio.startCrowd(); // 觀眾環境音(07-11 鐵則)
       audio.vibrate(18);
       pushCommentary(
         pick(["比賽開始!拉弓,瞄準,穩住呼吸!", "歡迎來到射箭場!比賽開始!"]),
@@ -196,9 +198,11 @@ function handleGameEvent(event) {
         audio.thud(0.5);
       } else if (event.isGold) {
         audio.scoreSting();
+        audio.crowdCheer(event.isBull ? 1 : 0.7); // 紅心全場沸騰、金心大聲喝采
         audio.vibrate([35, 25, 55]);
       } else {
         audio.rebound();
+        if (event.ring >= 7) audio.crowdCheer(0.3);
         audio.vibrate(22);
       }
       const line = impactCommentary(event);
@@ -212,6 +216,7 @@ function handleGameEvent(event) {
     }
     case "match-end": {
       audio.horn();
+      audio.crowdCheer(1);
       audio.vibrate([110, 50, 120]);
       pushCommentary(
         `比賽結束!總分 ${event.total},評等 ${event.grade}!`,
