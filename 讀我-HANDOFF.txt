@@ -28,6 +28,8 @@ GitHub 帳號:summer09201017-cloud/archery3d。GitHub 是唯一真相;桌面 zip
 ✅ 修掉骨架三個真 bug:①fireArrow impactX 是 const 被 aimAssist +=(kids~normal 一放箭就 crash)
    ②buildTarget 重建後沒重定位(開賽靶掉到射手腳下)③靶環放局部 -z 被背板整個蓋住(只見米色板)。
 ✅ 過肩瞄準視角(射手偏畫面右、靶+準星在中央);準星依距離放大。
+✅ 中靶後停靶面特寫(07-12 拍板):phase "scored" **不自動前進**——玩家點畫面/按空白鍵才進下一箭;
+   最新一箭套黃色脈動圈(latestMarker),脫靶不標。
 ✅ 改名件組:manifest/icon(箭靶)/title/run.bat/package.json/SW cache=archery3d-v1/
    localStorage=archery3d-settings-v1 & archery3d-save-v1。
 ✅ 播報人聲:射箭詞庫 12 句已用雲哲神經語音烤成 mp3(public/voice/,舊籃球 24 句已清),
