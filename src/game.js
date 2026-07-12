@@ -59,7 +59,7 @@ export function getModeConfig(modeId) {
 // ---------- 靶 / 場地常數 ----------
 const TARGET_R = 0.72; // 靶面半徑(世界單位)
 const TARGET_CENTER_Y = 1.38; // 紅心高度(約眼平)
-const BOW_TIP = new THREE.Vector3(-0.38, 1.52, 0.58); // 放箭起點=左手持弓處(過肩視角射手偏左,弓在其左側可見)
+const BOW_TIP = new THREE.Vector3(-0.38, 1.6, 0.58); // 放箭起點=左手持弓處(過肩視角射手偏左,弓在其左側可見)
 // 靶環顏色(World Archery 由外到內:白/黑/藍/紅/金),每色=2 環寬 0.2R
 const RING_COLORS = [0xf3f4f6, 0x25272b, 0x3f9be0, 0xe8443c, 0xf6d743];
 
@@ -157,11 +157,15 @@ function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, hair 
 
   // 身體雙節:胸腔(上)+腰部(下)——腰要收進去(07-12 使用者點名不要水桶腰):
   // 胸寬 0.3 → 腰最細 0.21 → 髖再放回 0.27,側影有曲線
-  const chest = new THREE.Mesh(new THREE.CapsuleGeometry(0.3, 0.5, 6, 12), shirtMat);
-  chest.position.y = 1.24;
+  // 比例(07-12 拍板):上身短一點、下半身/腿長一點、頭胸之間有脖子
+  const chest = new THREE.Mesh(new THREE.CapsuleGeometry(0.3, 0.34, 6, 12), shirtMat);
+  chest.position.y = 1.3;
   rig.add(chest);
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.1, 0.2, 12), skinMat);
+  neck.position.y = 1.76;
+  rig.add(neck);
   const waist = new THREE.Group();
-  waist.position.y = 0.96;
+  waist.position.y = 1.04;
   const belly = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.21, 0.3, 14), shirtMat);
   belly.position.y = -0.05;
   waist.add(belly);
@@ -174,52 +178,52 @@ function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, hair 
   rig.add(waist);
 
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.25, 18, 18), skinMat);
-  head.position.y = 1.86;
+  head.position.y = 2.0;
   rig.add(head);
 
   // 耳朵(所有人物都要有,07-12 拍板):頭兩側膚色半橢球,壓扁貼頭
   const earL = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 10), skinMat);
   earL.scale.set(0.45, 1, 0.8);
-  earL.position.set(-0.245, 1.85, 0);
+  earL.position.set(-0.245, 1.99, 0);
   rig.add(earL);
   const earR = earL.clone();
   earR.position.x = 0.245;
   rig.add(earR);
 
-  // 頭髮(所有人物都要有,07-12 拍板):球冠罩住頭頂+後腦,前額露出臉
+  // 頭髮(07-12 拍板):球冠罩頭頂(收窄到耳朵上緣,耳朵前面不留髮)+後腦半球帶(只蓋耳後)
   const hairMat = new THREE.MeshStandardMaterial({ color: hair, roughness: 0.85 });
   const hairCap = new THREE.Mesh(
-    new THREE.SphereGeometry(0.265, 18, 12, 0, Math.PI * 2, 0, Math.PI * 0.52),
+    new THREE.SphereGeometry(0.265, 18, 12, 0, Math.PI * 2, 0, Math.PI * 0.46),
     hairMat,
   );
-  hairCap.position.y = 1.87;
-  hairCap.rotation.x = -0.38; // 往後腦傾,露出額頭
+  hairCap.position.y = 2.01;
+  hairCap.rotation.x = -0.22; // 微往後腦傾:露出額頭,但正面仍看得到瀏海線
   rig.add(hairCap);
-  // 後腦下緣補一圈,側後方不露膚
+  // 後腦帶:phi 只掃後半球(z<0),到耳線為止——耳朵前面完全無髮
   const hairBack = new THREE.Mesh(
-    new THREE.SphereGeometry(0.255, 16, 8, Math.PI * 0.7, Math.PI * 1.6, Math.PI * 0.35, Math.PI * 0.38),
+    new THREE.SphereGeometry(0.255, 16, 8, Math.PI, Math.PI, Math.PI * 0.35, Math.PI * 0.38),
     hairMat,
   );
-  hairBack.position.y = 1.86;
+  hairBack.position.y = 2.0;
   rig.add(hairBack);
 
   // 臉:貼 +z(與身體同向)
   const faceDark = new THREE.MeshBasicMaterial({ color: 0x25201a });
   const faceWhite = new THREE.MeshBasicMaterial({ color: 0xffffff });
   const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.05, 10, 10), faceWhite);
-  eyeL.position.set(-0.09, 1.92, 0.21);
+  eyeL.position.set(-0.09, 2.06, 0.21);
   rig.add(eyeL);
   const eyeR = eyeL.clone();
   eyeR.position.x = 0.09;
   rig.add(eyeR);
   const pupilL = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 8), faceDark);
-  pupilL.position.set(-0.09, 1.92, 0.25);
+  pupilL.position.set(-0.09, 2.06, 0.25);
   rig.add(pupilL);
   const pupilR = pupilL.clone();
   pupilR.position.x = 0.09;
   rig.add(pupilR);
   const browL = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.02, 0.02), faceDark);
-  browL.position.set(-0.09, 2.0, 0.22);
+  browL.position.set(-0.09, 2.14, 0.22);
   browL.rotation.z = 0.16;
   rig.add(browL);
   const browR = browL.clone();
@@ -227,7 +231,7 @@ function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, hair 
   browR.rotation.z = -0.16;
   rig.add(browR);
   const smile = new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.014, 8, 14, Math.PI), faceDark);
-  smile.position.set(0, 1.78, 0.21);
+  smile.position.set(0, 1.92, 0.21);
   smile.rotation.z = Math.PI;
   rig.add(smile);
 
@@ -245,7 +249,7 @@ function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, hair 
       end: "hand",
       thumbSide: x < 0 ? 1 : -1, // 拇指朝身體側
     });
-    arm.pivot.position.set(x, 1.5, 0);
+    arm.pivot.position.set(x, 1.6, 0);
     // 自然垂放時肘微彎,不要筆直樂高手
     arm.joint.rotation.x = -0.18;
     rig.add(arm.pivot);
@@ -260,13 +264,13 @@ function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, hair 
       upperMaterial: pantsMat,
       lowerMaterial: pantsMat,
       endMaterial: shoeMat,
-      upperLen: 0.3,
-      lowerLen: 0.28,
+      upperLen: 0.34,
+      lowerLen: 0.32,
       upperRadius: 0.09,
       lowerRadius: 0.072,
       end: "foot",
     });
-    leg.pivot.position.set(x, 0.8, 0);
+    leg.pivot.position.set(x, 0.88, 0);
     // 站姿:大腿微前、膝微彎,重心自然
     leg.pivot.rotation.x = -0.05;
     leg.joint.rotation.x = 0.1;
@@ -454,11 +458,11 @@ export class ArcheryGame {
     this.archer = makePerson({ shirt: 0x2f6f4e, pants: 0x38424f, scale: 1 });
     this.archer.group.position.set(0, 0, 0);
     this.scene.add(this.archer.group);
-    // 左臂前伸持弓(肘幾乎打直)、右臂搭弦(肘先彎;draw 時肘越彎越折向臉)
+    // 左臂前伸持弓(肘幾乎打直)、右臂搭弦(上臂水平朝前;draw 時前臂沿箭線往「後」折=真實開弓)
     this.archer.leftArm.pivot.rotation.x = -Math.PI / 2;
     this.archer.leftArm.joint.rotation.x = -0.08;
-    this.archer.rightArm.pivot.rotation.x = -Math.PI / 2 + 0.55;
-    this.archer.rightArm.joint.rotation.x = -0.85;
+    this.archer.rightArm.pivot.rotation.x = -Math.PI / 2 + 0.08;
+    this.archer.rightArm.joint.rotation.x = -0.7;
 
     this.bow = makeBow();
     this.bow.group.position.copy(BOW_TIP);
@@ -957,10 +961,11 @@ export class ArcheryGame {
     } else {
       this.nockedArrow.visible = false;
     }
-    // 拉弓姿勢隨 draw:右肩後收+右肘越彎(前臂折回臉頰=真實開弓),左臂持弓打直,腰微前傾
+    // 拉弓姿勢隨 draw:上臂維持水平,前臂沿箭線往「後」折(07-12 拍板:不是往上拉是往後拉),
+    // 拉滿時前臂幾乎折平=手拉回臉頰旁;左臂持弓打直,腰微前傾
     if (this.archer) {
-      this.archer.rightArm.pivot.rotation.x = -Math.PI / 2 + 0.55 - drawFrac * 0.3;
-      this.archer.rightArm.joint.rotation.x = -0.85 - drawFrac * 1.05; // 拉滿時前臂折回,手拉到臉頰旁
+      this.archer.rightArm.pivot.rotation.x = -Math.PI / 2 + 0.08;
+      this.archer.rightArm.joint.rotation.x = -0.7 - drawFrac * 2.0;
 
       this.archer.leftArm.pivot.rotation.x = -Math.PI / 2;
       this.archer.leftArm.joint.rotation.x = -0.08;
