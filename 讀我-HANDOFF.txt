@@ -14,12 +14,16 @@ GitHub 帳號:summer09201017-cloud/archery3d。GitHub 是唯一真相;桌面 zip
    五難度(kids~hard)×三模式(practice/standard/bullseye)。
 ✅ main.js/index.html 已接線 ArcheryGame(HUD:總分/局數箭數/上一箭/紅心數/拉弓力道/穩定度/風向;
    首頁選單三模式卡+難度;字幕播報條)。dev hook = window.__archery3d。
-✅ ★關節人物鐵則(07-12 拍板)已落地=**本系列第一個活範例**,boxing3d 之後照抄這裡:
-   - createLimb 雙節肢體:上臂/大腿(pivot=肩髖)+肘/膝(joint)+前臂/小腿+手掌/腳掌;
+✅ ★關節人物鐵則(07-12 拍板,當日多輪加碼)已落地=**本系列第一個活範例**,boxing3d 之後照抄這裡:
+   - createLimb 雙節肢體:上臂/大腿(pivot=肩髖)+肘/膝(joint)+前臂/小腿+末端;
+   - 五指手(拍板「不要圓球手」):掌心方塊+四指微彎+拇指朝身體側(thumbSide 參數);
    - 手臂上臂=衣袖色、前臂手掌=膚色;腿=褲色+鞋;
-   - 身體雙節:胸腔+腰部段(belly+髖+腰帶線);
-   - 頭髮(07-12 拍板「所有人物都要有」):球冠罩頭頂+後腦、額頭露臉,觀眾髮色隨機 6 色;
-   - 射手開弓:左臂持弓打直、右肘隨拉弓折向臉頰、腰微前傾;觀眾站姿膝肘微彎。
+   - 身體:胸腔(短)+腰部段收細(拍板「不要水桶腰」:胸0.3→腰0.21→髖0.27)+膚色脖子;
+   - 比例(拍板):上身短、下半身/腿長(大腿0.34+小腿0.32);
+   - 頭髮(拍板「所有人都要有」):髮蓋收窄到耳上緣+後腦帶只掃後半球——**耳朵前面無髮**,
+     正面留瀏海線(tilt -0.22);觀眾髮色隨機 6 色;耳朵=頭兩側壓扁半橢球;
+   - 射手開弓(拍板「不是往上拉是往後拉」):上臂水平,前臂沿箭線後折(joint -0.7→拉滿 -2.7)
+     手拉回臉頰旁;左臂持弓打直;腰微前傾;觀眾站姿膝肘微彎。
 ✅ 修掉骨架三個真 bug:①fireArrow impactX 是 const 被 aimAssist +=(kids~normal 一放箭就 crash)
    ②buildTarget 重建後沒重定位(開賽靶掉到射手腳下)③靶環放局部 -z 被背板整個蓋住(只見米色板)。
 ✅ 過肩瞄準視角(射手偏畫面右、靶+準星在中央);準星依距離放大。
@@ -34,9 +38,10 @@ GitHub 帳號:summer09201017-cloud/archery3d。GitHub 是唯一真相;桌面 zip
    每檔有感、幼兒有成就感、職業有張力。
 ✅ 修 voice.js WebMediaPlayer 洩漏:每句 new Audio 會被 Chrome 封鎖(自我對戰 1200 箭踩爆),
    改單一 Audio 元素重用——長場次課堂也安全。
-❌ 還沒做(依序):
-   1. 部署:netlify sites:create hfpc-archery3d(手動站 --no-build 慣例)→ 進大廳。
-   2. fork 出鉛球/鐵餅/標槍(換投擲物+場地,核心不動)。
+✅ 部署+進大廳(07-12):https://hfpc-archery3d.netlify.app(手動站 --no-build,線上 bundle 驗過);
+   大廳 hfpc-bible-games 休閒運動合輯第十九彈 🏹 卡(kind sports,sw v52,npm test 綠,線上驗過)。
+❌ 還沒做:
+   1. fork 出鉛球/鐵餅/標槍(換投擲物+場地,核心不動)。
 
 【怎麼跑】
 雙擊 run.bat(裝依賴+起 dev+開瀏覽器);或 npm install → npm run dev。build:npm run build(2.8s 綠)。
