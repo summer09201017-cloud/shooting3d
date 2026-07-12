@@ -85,7 +85,8 @@ function createLimb({
   lowerLen,
   upperRadius,
   lowerRadius,
-  end = "hand", // hand:圓手掌 | foot:腳掌(朝 +z)
+  end = "hand", // hand:五指手掌(07-12 拍板不要圓球手) | foot:腳掌(朝 +z)
+  thumbSide = 1, // 拇指朝向(+1=局部 +x;左手傳 +1、右手傳 -1 → 拇指朝身體)
 }) {
   const pivot = new THREE.Group();
   const upper = new THREE.Mesh(
@@ -114,8 +115,23 @@ function createLimb({
     );
     endMesh.position.set(0, -lowerLen - lowerRadius * 0.4, lowerRadius * 0.9);
   } else {
-    endMesh = new THREE.Mesh(new THREE.SphereGeometry(lowerRadius * 1.25, 10, 10), endMaterial);
-    endMesh.position.y = -lowerLen - lowerRadius * 0.4;
+    // 五指手:掌心方塊+四指微彎+拇指斜出(低多邊形塊狀,同系列風格)
+    const r = lowerRadius;
+    endMesh = new THREE.Group();
+    endMesh.position.y = -lowerLen - r * 0.2;
+    const palm = new THREE.Mesh(new THREE.BoxGeometry(r * 2.2, r * 1.7, r * 1.0), endMaterial);
+    palm.position.y = -r * 0.85;
+    endMesh.add(palm);
+    for (let i = 0; i < 4; i += 1) {
+      const finger = new THREE.Mesh(new THREE.BoxGeometry(r * 0.44, r * 1.25, r * 0.55), endMaterial);
+      finger.position.set((i - 1.5) * r * 0.54, -r * 2.1, 0);
+      finger.rotation.x = 0.14; // 指尖微彎,放鬆手型
+      endMesh.add(finger);
+    }
+    const thumb = new THREE.Mesh(new THREE.BoxGeometry(r * 0.5, r * 1.0, r * 0.55), endMaterial);
+    thumb.position.set(thumbSide * r * 1.3, -r * 0.95, r * 0.1);
+    thumb.rotation.z = thumbSide * -0.55;
+    endMesh.add(thumb);
   }
   joint.add(endMesh);
 
@@ -227,6 +243,7 @@ function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, hair 
       upperRadius: 0.07,
       lowerRadius: 0.058,
       end: "hand",
+      thumbSide: x < 0 ? 1 : -1, // 拇指朝身體側
     });
     arm.pivot.position.set(x, 1.5, 0);
     // 自然垂放時肘微彎,不要筆直樂高手
