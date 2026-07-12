@@ -509,6 +509,14 @@ export class ArcheryGame {
 
     this.buildTarget();
     this.buildCrowd();
+
+    // 最新一箭標記(07-12 拍板):發光圈套在剛射中的箭上,update 內脈動——玩家一眼看出剛射到哪
+    this.latestMarker = new THREE.Mesh(
+      new THREE.TorusGeometry(0.09, 0.014, 8, 24),
+      new THREE.MeshBasicMaterial({ color: 0xffe14d, transparent: true, opacity: 0.95 }),
+    );
+    this.latestMarker.visible = false;
+    this.scene.add(this.latestMarker);
   }
 
   buildTarget() {
@@ -660,6 +668,11 @@ export class ArcheryGame {
   }
 
   beginDraw() {
+    // 計分停留中:點一下=玩家決定繼續(回射手後方、開下一箭)
+    if (this.phase === "scored") {
+      this.advanceAfterScore();
+      return;
+    }
     if (this.phase !== "ready") return;
     this.phase = "drawing";
     this.drawT = 0;
@@ -760,10 +773,19 @@ export class ArcheryGame {
       totalScore: this.totalScore,
     });
 
+    // 靶面特寫停留(07-12 拍板):不自動跳回射手後方——玩家點一下畫面才繼續下一箭
     this.phase = "scored";
-    this.scoreTimer = 1.3;
-    this.message =
+    this.cameraView = 1;
+    // 最新一箭標記移到剛中的位置(脫靶時箭不在靶上,不標)
+    if (ring > 0) {
+      this.latestMarker.position.set(impact.x, impact.y, this.distance - 0.07);
+      this.latestMarker.visible = true;
+    } else {
+      this.latestMarker.visible = false;
+    }
+    const ringText =
       ring === 0 ? "脫靶了……調整一下再來。" : ring >= 10 ? "正中紅心!十環!" : `${ring} 環!`;
+    this.message = `${ringText}(點一下畫面,繼續下一箭)`;
     this.pushHud();
   }
 
@@ -878,10 +900,13 @@ export class ArcheryGame {
         // 鍵盤:方向鍵微調瞄準
       }
       if (this.phase === "flying") this.updateFlight(delta);
-      if (this.phase === "scored") {
-        this.scoreTimer -= delta;
-        if (this.scoreTimer <= 0) this.advanceAfterScore();
-      }
+      // scored:停在靶面特寫等玩家點擊(beginDraw 處理),不自動進下一箭
+    }
+
+    // 最新一箭標記脈動
+    if (this.latestMarker && this.latestMarker.visible) {
+      const pulse = 1 + Math.sin(this.time * 5) * 0.18;
+      this.latestMarker.scale.setScalar(pulse);
     }
 
     // 鍵盤輸入(空白鍵拉弓/放箭、方向鍵瞄準、V 視角)
