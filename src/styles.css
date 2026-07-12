@@ -144,6 +144,7 @@ body::before {
   display: block;
   font-size: clamp(1.1rem, 2.4vw, 1.7rem);
   margin-top: 0.12rem;
+  white-space: nowrap; /* 「計分」等兩字中文不要被折成直排 */
 }
 
 .stack-subtext {

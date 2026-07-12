@@ -11,36 +11,36 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-    <title>Full Court 3D Basketball</title>
+    <title>Archery 3D 3D 射箭</title>
   </head>
   <body>
     <div class="app-shell">
-      <canvas id="gameCanvas" aria-label="3D 籃球遊戲畫面"></canvas>
+      <canvas id="gameCanvas" aria-label="3D 射箭遊戲畫面"></canvas>
 
       <div class="top-bar">
         <div class="score-card team-home">
-          <span class="score-label" id="homeTeamName">玩家隊</span>
-          <strong id="homeScore">0</strong>
+          <span class="score-label">總分</span>
+          <strong id="totalScore">0</strong>
         </div>
         <div class="center-board">
           <div class="clock-stack period-stack">
             <span class="mini-label">模式</span>
-            <strong id="modeCode">5v5</strong>
+            <strong id="modeCode">計分賽</strong>
           </div>
           <div class="clock-stack">
-            <span class="mini-label">節次 / 時間</span>
-            <strong id="periodLabel">Q1</strong>
-            <span class="stack-subtext" id="gameClock">01:15</span>
+            <span class="mini-label">局數 / 箭數</span>
+            <strong id="endLabel">1/6</strong>
+            <span class="stack-subtext" id="arrowLabel">第 1 箭</span>
           </div>
           <div class="clock-stack accent">
-            <span class="mini-label">進攻時間</span>
-            <strong id="shotClock">18</strong>
+            <span class="mini-label">上一箭</span>
+            <strong id="lastRingLabel">—</strong>
             <span class="stack-subtext" id="phaseLabel">主選單</span>
           </div>
         </div>
         <div class="score-card team-away">
-          <span class="score-label" id="awayTeamName">AI 隊</span>
-          <strong id="awayScore">0</strong>
+          <span class="score-label">紅心數</span>
+          <strong id="bullseyeCount">0</strong>
         </div>
       </div>
 
@@ -51,37 +51,33 @@
 
       <aside class="side-panel">
         <div class="panel-block hero-panel">
-          <p class="eyebrow">5v5 Full Court</p>
-          <h1>3D 籃球對戰</h1>
+          <p class="eyebrow">Archery 3D</p>
+          <h1>3D 射箭</h1>
           <p class="panel-copy">
-            現在這版加入了首頁選單、隊伍配色、更多模式、音效播報與更明顯的碰撞手感。
+            按住拉弓、移動瞄準、放開放箭。拉滿越久準星越晃——抓準風向,一箭入紅心!
           </p>
         </div>
 
         <div class="panel-block compact-grid">
           <div>
             <span class="mini-label">遊戲模式</span>
-            <strong id="modeLabel">全場對戰</strong>
+            <strong id="modeLabel">計分賽</strong>
           </div>
           <div>
-            <span class="mini-label">AI 強度</span>
+            <span class="mini-label">難度</span>
             <strong id="difficultyLabel">標準</strong>
           </div>
           <div>
-            <span class="mini-label">持球方</span>
-            <strong id="possessionLabel">玩家隊</strong>
+            <span class="mini-label">靶距</span>
+            <strong id="distanceLabel">22 m</strong>
           </div>
           <div>
-            <span class="mini-label">控制球員</span>
-            <strong id="controlledLabel">Home PG</strong>
+            <span class="mini-label">風向</span>
+            <strong id="windLabel">幾乎無風</strong>
           </div>
           <div>
-            <span class="mini-label">主隊配色</span>
-            <strong id="homeThemeLabel">烈陽</strong>
-          </div>
-          <div>
-            <span class="mini-label">客隊配色</span>
-            <strong id="awayThemeLabel">深潮</strong>
+            <span class="mini-label">本局得分</span>
+            <strong id="endScoreLabel">0</strong>
           </div>
           <div>
             <span class="mini-label">音效狀態</span>
@@ -95,20 +91,19 @@
 
         <div class="panel-block meter-block">
           <div class="meter-copy">
-            <span class="mini-label">投籃條</span>
-            <strong id="shotMeterText">按住投籃鍵</strong>
+            <span class="mini-label">拉弓力道</span>
+            <strong id="drawMeterText">按住拉弓</strong>
           </div>
           <div class="meter-track">
-            <div id="shotMeterWindow" class="meter-window"></div>
-            <div id="shotMeterFill" class="meter-fill shot"></div>
+            <div id="drawMeterFill" class="meter-fill shot"></div>
           </div>
 
           <div class="meter-copy stamina-copy">
-            <span class="mini-label">控制球員體力</span>
-            <strong id="staminaValue">100%</strong>
+            <span class="mini-label">穩定度(越低越晃)</span>
+            <strong id="steadyValue">100%</strong>
           </div>
           <div class="meter-track stamina">
-            <div id="staminaFill" class="meter-fill stamina-fill"></div>
+            <div id="steadyFill" class="meter-fill stamina-fill"></div>
           </div>
         </div>
 
@@ -128,13 +123,10 @@
         </div>
 
         <div class="panel-block instructions">
-          <p class="mini-label">PC 操作</p>
-          <p>移動: WASD / 方向鍵</p>
-          <p>投籃: 按住空白鍵，放開出手</p>
-          <p>傳球: J</p>
-          <p>抄截 / 火鍋: K</p>
-          <p>切換防守球員: L（或 Tab）</p>
-          <p>衝刺: Shift</p>
+          <p class="mini-label">操作</p>
+          <p>拉弓: 按住畫面或空白鍵</p>
+          <p>瞄準: 移動滑鼠 / 方向鍵微調</p>
+          <p>放箭: 放開</p>
           <p>視角切換: V</p>
           <p>暫停: Esc / P</p>
         </div>
@@ -142,17 +134,14 @@
 
       <div class="touch-layer" id="touchControls">
         <div class="dpad">
-          <button data-action="up" aria-label="向前">▲</button>
-          <button data-action="left" aria-label="向左">◀</button>
-          <button data-action="right" aria-label="向右">▶</button>
-          <button data-action="down" aria-label="向後">▼</button>
+          <button data-action="up" aria-label="瞄準上">▲</button>
+          <button data-action="left" aria-label="瞄準左">◀</button>
+          <button data-action="right" aria-label="瞄準右">▶</button>
+          <button data-action="down" aria-label="瞄準下">▼</button>
         </div>
         <div class="action-pad">
-          <button data-action="shoot" class="shoot">投籃</button>
-          <button data-action="pass">傳球</button>
-          <button data-action="action">抄截</button>
-          <button data-action="switch">切換</button>
-          <button data-action="sprint" class="sprint">衝刺</button>
+          <button data-action="shoot" class="shoot">拉弓</button>
+          <button data-action="camera">視角</button>
         </div>
       </div>
 
@@ -173,10 +162,10 @@
         <div class="home-backdrop"></div>
         <div class="home-content">
           <div class="home-hero">
-            <p class="eyebrow">Arcade Basketball</p>
-            <h2>選模式、配球衣、直接開打</h2>
+            <p class="eyebrow">Archery 3D</p>
+            <h2>拉弓、屏息、放箭</h2>
             <p>
-              保留手機與 PC 共玩的優勢，現在加上首頁選單、完整模式、隊伍配色、音效播報與更強的對抗感。
+              選好模式與難度就上場。準星會隨拉滿時間越晃越大,還有順逆風——往反方向瞄準補償,挑戰十環紅心!
             </p>
           </div>
 
@@ -184,62 +173,31 @@
             <section class="home-card">
               <p class="eyebrow">遊戲模式</p>
               <div class="mode-card-grid" id="modeCardGrid">
-                <button class="mode-card" data-mode="exhibition">
-                  <strong>全場對戰</strong>
-                  <span>4 節標準 5v5 比賽</span>
+                <button class="mode-card" data-mode="practice">
+                  <strong>練習場</strong>
+                  <span>無限箭數,自由練手感</span>
                 </button>
-                <button class="mode-card" data-mode="clutch">
-                  <strong>決勝時刻</strong>
-                  <span>最後 90 秒追分戰</span>
+                <button class="mode-card" data-mode="standard">
+                  <strong>計分賽</strong>
+                  <span>6 局 × 3 箭,滿分 180</span>
                 </button>
-                <button class="mode-card" data-mode="race21">
-                  <strong>搶 21</strong>
-                  <span>先到 21 且至少領先 2 分</span>
-                </button>
-                <button class="mode-card" data-mode="raceto">
-                  <strong>搶分賽（無計時）</strong>
-                  <span>先到目標分就贏・配半場＝街頭鬥牛</span>
+                <button class="mode-card" data-mode="bullseye">
+                  <strong>紅心挑戰</strong>
+                  <span>10 箭,盡量射進 9、10 環</span>
                 </button>
               </div>
               <p id="modeDescription" class="mode-description"></p>
             </section>
 
             <section class="home-card">
-              <p class="eyebrow">隊伍配色</p>
-              <label class="field-label" for="homeThemeSelect">玩家隊</label>
-              <select id="homeThemeSelect"></select>
-              <div class="theme-preview" id="homeThemePreview"></div>
-
-              <label class="field-label" for="awayThemeSelect">AI 隊</label>
-              <select id="awayThemeSelect"></select>
-              <div class="theme-preview" id="awayThemePreview"></div>
-            </section>
-
-            <section class="home-card">
               <p class="eyebrow">比賽設定</p>
-              <label class="field-label" for="menuDifficultySelect">AI 強度</label>
+              <label class="field-label" for="menuDifficultySelect">難度</label>
               <select id="menuDifficultySelect">
                 <option value="kids">幼兒（超簡單）</option>
                 <option value="child">兒童（簡單）</option>
                 <option value="easy">入門</option>
                 <option value="normal">標準</option>
                 <option value="hard">職業</option>
-              </select>
-
-              <label class="field-label" for="targetScoreInput" id="targetScoreLabel" hidden>搶分目標（分）</label>
-              <input type="number" id="targetScoreInput" min="5" max="99" value="21" hidden />
-
-              <label class="field-label" for="teamSizeSelect">每隊人數</label>
-              <select id="teamSizeSelect">
-                <option value="3">3 人（半場經典）</option>
-                <option value="4">4 人</option>
-                <option value="5" selected>5 人（標準）</option>
-              </select>
-
-              <label class="field-label" for="courtModeSelect">場地</label>
-              <select id="courtModeSelect">
-                <option value="full" selected>全場（兩個籃框）</option>
-                <option value="half">半場（共攻一框）</option>
               </select>
 
               <label class="field-label" for="audioSelect">音效與播報</label>
@@ -251,11 +209,11 @@
               <div class="home-mode-meta">
                 <div>
                   <span class="mini-label">模式摘要</span>
-                  <strong id="modeMetaTitle">全場對戰</strong>
+                  <strong id="modeMetaTitle">計分賽</strong>
                 </div>
                 <div>
                   <span class="mini-label">目標</span>
-                  <strong id="modeMetaGoal">4 節內拿下勝利</strong>
+                  <strong id="modeMetaGoal">總分越高越好</strong>
                 </div>
               </div>
             </section>
@@ -271,4 +229,4 @@
 
     <script type="module" src="/src/main.js"></script>
   </body>
-  </html>
+</html>

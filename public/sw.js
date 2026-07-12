@@ -1,4 +1,4 @@
-const CACHE_NAME = "fullcourt-3d-basketball-v1";
+const CACHE_NAME = "archery3d-v1";
 const CORE_ASSETS = ["/", "/index.html", "/manifest.webmanifest", "/icon.svg", "/icon-maskable.svg"];
 
 self.addEventListener("install", (event) => {

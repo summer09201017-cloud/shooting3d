@@ -57,7 +57,7 @@ export function getModeConfig(modeId) {
 // ---------- 靶 / 場地常數 ----------
 const TARGET_R = 0.72; // 靶面半徑(世界單位)
 const TARGET_CENTER_Y = 1.38; // 紅心高度(約眼平)
-const BOW_TIP = new THREE.Vector3(0.02, 1.5, 0.52); // 放箭起點(左手持弓處)
+const BOW_TIP = new THREE.Vector3(-0.38, 1.52, 0.58); // 放箭起點=左手持弓處(過肩視角射手偏左,弓在其左側可見)
 // 靶環顏色(World Archery 由外到內:白/黑/藍/紅/金),每色=2 環寬 0.2R
 const RING_COLORS = [0xf3f4f6, 0x25272b, 0x3f9be0, 0xe8443c, 0xf6d743];
 
@@ -73,15 +73,51 @@ function randomSigned(scale) {
 }
 
 // ---------- 人物(臉部鐵則:眼白+黑瞳+眉毛+微笑,貼頭前側 +z) ----------
-function createLimb(material, upperLen, radius) {
+// ★關節人物鐵則(07-12 拍板):肢體一律雙節——上段(上臂/大腿)+關節(肘/膝)+下段(前臂/小腿)+末端(手掌/腳掌)。
+// pivot=肩/髖關節;joint=肘/膝關節(掛在上段末端,旋轉它=彎肘/彎膝)。
+function createLimb({
+  upperMaterial,
+  lowerMaterial,
+  endMaterial,
+  upperLen,
+  lowerLen,
+  upperRadius,
+  lowerRadius,
+  end = "hand", // hand:圓手掌 | foot:腳掌(朝 +z)
+}) {
   const pivot = new THREE.Group();
   const upper = new THREE.Mesh(
-    new THREE.CapsuleGeometry(radius, upperLen, 4, 8),
-    material,
+    new THREE.CapsuleGeometry(upperRadius, upperLen, 4, 8),
+    upperMaterial,
   );
   upper.position.y = -upperLen / 2;
   pivot.add(upper);
-  return { pivot, upper };
+
+  const joint = new THREE.Group();
+  joint.position.y = -upperLen;
+  pivot.add(joint);
+
+  const lower = new THREE.Mesh(
+    new THREE.CapsuleGeometry(lowerRadius, lowerLen, 4, 8),
+    lowerMaterial,
+  );
+  lower.position.y = -lowerLen / 2;
+  joint.add(lower);
+
+  let endMesh;
+  if (end === "foot") {
+    endMesh = new THREE.Mesh(
+      new THREE.BoxGeometry(lowerRadius * 2.1, lowerRadius, lowerRadius * 3.4),
+      endMaterial,
+    );
+    endMesh.position.set(0, -lowerLen - lowerRadius * 0.4, lowerRadius * 0.9);
+  } else {
+    endMesh = new THREE.Mesh(new THREE.SphereGeometry(lowerRadius * 1.25, 10, 10), endMaterial);
+    endMesh.position.y = -lowerLen - lowerRadius * 0.4;
+  }
+  joint.add(endMesh);
+
+  return { pivot, upper, joint, lower, end: endMesh };
 }
 
 function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, scale = 1 } = {}) {
@@ -99,12 +135,21 @@ function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, scale
     emissiveIntensity: 0.5,
   });
 
-  const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.3, 0.72, 6, 12), shirtMat);
-  torso.position.y = 1.12;
-  rig.add(torso);
-
-  const waist = new THREE.Mesh(new THREE.CylinderGeometry(0.31, 0.34, 0.24, 14), pantsMat);
-  waist.position.y = 0.82;
+  // 身體雙節:胸腔(上)+腰部(下)——腰部是獨立段,之後可做前傾/轉腰
+  const chest = new THREE.Mesh(new THREE.CapsuleGeometry(0.3, 0.5, 6, 12), shirtMat);
+  chest.position.y = 1.24;
+  rig.add(chest);
+  const waist = new THREE.Group();
+  waist.position.y = 0.96;
+  const belly = new THREE.Mesh(new THREE.CylinderGeometry(0.29, 0.33, 0.3, 14), shirtMat);
+  belly.position.y = -0.05;
+  waist.add(belly);
+  const hip = new THREE.Mesh(new THREE.CylinderGeometry(0.33, 0.3, 0.2, 14), pantsMat);
+  hip.position.y = -0.26;
+  waist.add(hip);
+  const beltLine = new THREE.Mesh(new THREE.CylinderGeometry(0.335, 0.335, 0.06, 14), new THREE.MeshStandardMaterial({ color: 0x5a3d22, roughness: 0.6 }));
+  beltLine.position.y = -0.15;
+  waist.add(beltLine);
   rig.add(waist);
 
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.25, 18, 18), skinMat);
@@ -139,22 +184,52 @@ function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, scale
   smile.rotation.z = Math.PI;
   rig.add(smile);
 
-  const leftArm = createLimb(skinMat, 0.56, 0.07);
-  leftArm.pivot.position.set(-0.4, 1.5, 0);
-  rig.add(leftArm.pivot);
-  const rightArm = createLimb(skinMat, 0.56, 0.07);
-  rightArm.pivot.position.set(0.4, 1.5, 0);
-  rig.add(rightArm.pivot);
+  // 手臂:上臂穿短袖(衣色)+前臂與手掌(膚色);肘關節可彎
+  const shoeMat = new THREE.MeshStandardMaterial({ color: 0x2a2622, roughness: 0.85 });
+  const mkArm = (x) => {
+    const arm = createLimb({
+      upperMaterial: shirtMat,
+      lowerMaterial: skinMat,
+      endMaterial: skinMat,
+      upperLen: 0.27,
+      lowerLen: 0.26,
+      upperRadius: 0.07,
+      lowerRadius: 0.058,
+      end: "hand",
+    });
+    arm.pivot.position.set(x, 1.5, 0);
+    // 自然垂放時肘微彎,不要筆直樂高手
+    arm.joint.rotation.x = -0.18;
+    rig.add(arm.pivot);
+    return arm;
+  };
+  const leftArm = mkArm(-0.4);
+  const rightArm = mkArm(0.4);
 
-  const leftLeg = createLimb(pantsMat, 0.62, 0.09);
-  leftLeg.pivot.position.set(-0.15, 0.8, 0);
-  rig.add(leftLeg.pivot);
-  const rightLeg = createLimb(pantsMat, 0.62, 0.09);
-  rightLeg.pivot.position.set(0.15, 0.8, 0);
-  rig.add(rightLeg.pivot);
+  // 腿:大腿+小腿(褲色)+腳掌(鞋);膝關節可彎
+  const mkLeg = (x) => {
+    const leg = createLimb({
+      upperMaterial: pantsMat,
+      lowerMaterial: pantsMat,
+      endMaterial: shoeMat,
+      upperLen: 0.3,
+      lowerLen: 0.28,
+      upperRadius: 0.09,
+      lowerRadius: 0.072,
+      end: "foot",
+    });
+    leg.pivot.position.set(x, 0.8, 0);
+    // 站姿:大腿微前、膝微彎,重心自然
+    leg.pivot.rotation.x = -0.05;
+    leg.joint.rotation.x = 0.1;
+    rig.add(leg.pivot);
+    return leg;
+  };
+  const leftLeg = mkLeg(-0.15);
+  const rightLeg = mkLeg(0.15);
 
   group.scale.setScalar(scale);
-  return { group, rig, head, leftArm, rightArm, leftLeg, rightLeg };
+  return { group, rig, head, waist, leftArm, rightArm, leftLeg, rightLeg };
 }
 
 // ---------- 弓 + 箭 ----------
@@ -331,9 +406,11 @@ export class ArcheryGame {
     this.archer = makePerson({ shirt: 0x2f6f4e, pants: 0x38424f, scale: 1 });
     this.archer.group.position.set(0, 0, 0);
     this.scene.add(this.archer.group);
-    // 左臂前伸持弓、右臂拉弦(基本姿勢;draw 時再細動)
+    // 左臂前伸持弓(肘幾乎打直)、右臂搭弦(肘先彎;draw 時肘越彎越折向臉)
     this.archer.leftArm.pivot.rotation.x = -Math.PI / 2;
-    this.archer.rightArm.pivot.rotation.x = -Math.PI / 2 + 0.5;
+    this.archer.leftArm.joint.rotation.x = -0.08;
+    this.archer.rightArm.pivot.rotation.x = -Math.PI / 2 + 0.55;
+    this.archer.rightArm.joint.rotation.x = -0.85;
 
     this.bow = makeBow();
     this.bow.group.position.copy(BOW_TIP);
@@ -396,7 +473,9 @@ export class ArcheryGame {
         geo,
         new THREE.MeshStandardMaterial({ color: RING_COLORS[i], roughness: 0.75, side: THREE.DoubleSide }),
       );
-      ring.position.z = -0.041 - i * 0.001; // 內圈略微前疊避免 z-fighting
+      // group 之後會 rotation.y=PI 朝向射手:局部 +z 才是「面向射手」那側,環要放背板前(+0.041)
+      ring.position.z = 0.041 + i * 0.001; // 內圈略微前疊避免 z-fighting
+      ring.rotation.y = Math.PI; // CircleGeometry 正面朝局部 +z,翻半圈讓正面隨 group 朝射手
       group.add(ring);
     }
     // 立架
@@ -409,6 +488,8 @@ export class ArcheryGame {
 
     group.rotation.y = Math.PI; // 靶面朝向射手(-z)
     this.targetGroup = group;
+    // 重建時就定位(setDistance 可能比 buildTarget 先跑,否則新靶掉在原點)
+    if (this.distance) group.position.set(0, TARGET_CENTER_Y + TARGET_R * 0.9, this.distance);
     this.scene.add(group);
     this.plantedArrows = [];
   }
@@ -543,7 +624,7 @@ export class ArcheryGame {
     const powerFactor = 0.6 + this.power * 0.9; // 拉越滿→箭越快→風/晃影響越小
     // 命中點 = 瞄準 + 放箭當下的晃動 + 風漂(可被反向瞄準補償)
     const swayNow = this.currentSway();
-    const impactX = this.aim.x + swayNow.x + this.wind.x / powerFactor;
+    let impactX = this.aim.x + swayNow.x + this.wind.x / powerFactor;
     let impactY = this.aim.y + swayNow.y + this.wind.y / powerFactor;
     // 拉不滿額外下墜(箭偏弱)
     if (this.power < 0.6) impactY -= (0.6 - this.power) * TARGET_R * 0.5;
@@ -803,6 +884,7 @@ export class ArcheryGame {
     const sway = this.currentSway();
     this.reticleOffset.copy(sway);
     this.reticle.position.set(this.aim.x + sway.x, this.aim.y + sway.y, this.distance - 0.06);
+    this.reticle.scale.setScalar(Math.max(1, this.distance / 7)); // 遠靶時放大,不然 22m 外小到看不見
     this.reticle.lookAt(this.camera.position);
   }
 
@@ -822,10 +904,14 @@ export class ArcheryGame {
     } else {
       this.nockedArrow.visible = false;
     }
-    // 右臂拉弦角度隨 draw
+    // 拉弓姿勢隨 draw:右肩後收+右肘越彎(前臂折回臉頰=真實開弓),左臂持弓打直,腰微前傾
     if (this.archer) {
-      this.archer.rightArm.pivot.rotation.x = -Math.PI / 2 + 0.5 - drawFrac * 0.5;
+      this.archer.rightArm.pivot.rotation.x = -Math.PI / 2 + 0.55 - drawFrac * 0.3;
+      this.archer.rightArm.joint.rotation.x = -0.85 - drawFrac * 1.05; // 拉滿時前臂折回,手拉到臉頰旁
+
       this.archer.leftArm.pivot.rotation.x = -Math.PI / 2;
+      this.archer.leftArm.joint.rotation.x = -0.08;
+      this.archer.rig.rotation.x = drawFrac * 0.05;
       // 弓略隨瞄準左右轉
       this.bow.group.rotation.y = clamp((this.aim.x) * 0.12, -0.2, 0.2);
     }
@@ -838,9 +924,9 @@ export class ArcheryGame {
     const centerLook = new THREE.Vector3(0, TARGET_CENTER_Y, this.distance);
 
     if (aiming || this.cameraView === 0) {
-      // 射手後方瞄準視角(核心,鎖):微跟瞄準點
-      desiredPos = new THREE.Vector3(this.aim.x * 0.12, 2.02, -3.4);
-      desiredLook = new THREE.Vector3(this.aim.x * 0.5, TARGET_CENTER_Y * 0.92, this.distance * 0.6);
+      // 過肩瞄準視角(核心,鎖):相機在右肩後上方,射手偏左、靶與準星在畫面中央不被身體擋住
+      desiredPos = new THREE.Vector3(this.aim.x * 0.12 + 0.9, 2.15, -2.3);
+      desiredLook = new THREE.Vector3(this.aim.x * 0.75, TARGET_CENTER_Y, this.distance);
     } else if (this.cameraView === 1) {
       // 靶面特寫
       desiredPos = new THREE.Vector3(0, TARGET_CENTER_Y, this.distance - 4.2);

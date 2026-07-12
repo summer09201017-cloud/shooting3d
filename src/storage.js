@@ -1,11 +1,9 @@
-const SETTINGS_KEY = "fullcourt-3d-settings-v2";
-const SAVE_KEY = "fullcourt-3d-save-v2";
+const SETTINGS_KEY = "archery3d-settings-v1";
+const SAVE_KEY = "archery3d-save-v1";
 
 const defaultSettings = {
   difficulty: "normal",
-  modeId: "exhibition",
-  homeThemeId: "ember",
-  awayThemeId: "tide",
+  modeId: "standard",
   audioEnabled: true,
 };
 

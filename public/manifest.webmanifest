@@ -1,7 +1,7 @@
 {
-  "name": "3D 全場籃球",
-  "short_name": "3D籃球",
-  "description": "可在手機與 PC 遊玩的 3D 全場 5v5 籃球遊戲。",
+  "name": "3D 射箭",
+  "short_name": "3D射箭",
+  "description": "可在手機與 PC 遊玩的 3D 射箭遊戲——拉弓蓄力、準星晃動、順逆風、十環靶計分。",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#09131d",

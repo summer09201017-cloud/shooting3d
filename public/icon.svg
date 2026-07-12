@@ -6,9 +6,12 @@
     </linearGradient>
   </defs>
   <rect width="512" height="512" rx="112" fill="url(#bg)" />
-  <circle cx="256" cy="266" r="132" fill="#ff7a18" />
-  <path d="M124 266h264M256 134c28 52 28 212 0 264M164 174c44 26 78 74 92 92 16 20 48 66 92 94M348 174c-44 26-78 74-92 92-16 20-48 66-92 94" fill="none" stroke="#602d05" stroke-width="18" stroke-linecap="round"/>
-  <path d="M128 120h256" stroke="#f1d36a" stroke-width="18" stroke-linecap="round"/>
-  <path d="M332 154h62" stroke="#f4f8fc" stroke-width="18" stroke-linecap="round"/>
-  <path d="M282 154h80a14 14 0 0 1 14 14v28h-108" fill="none" stroke="#f4f8fc" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="256" cy="256" r="150" fill="#f4f8fc" />
+  <circle cx="256" cy="256" r="118" fill="#25272b" />
+  <circle cx="256" cy="256" r="86" fill="#3f9be0" />
+  <circle cx="256" cy="256" r="56" fill="#e8443c" />
+  <circle cx="256" cy="256" r="28" fill="#f6d743" />
+  <path d="M256 256 L416 96" stroke="#e8ddc4" stroke-width="20" stroke-linecap="round" />
+  <path d="M400 80 l40 -8 -8 40 -22 -10z" fill="#9aa3ad" />
+  <path d="M268 232 l-24 24 24 4z" fill="#d8433c" />
 </svg>
