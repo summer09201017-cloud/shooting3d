@@ -140,7 +140,8 @@ function createLimb({
 
 const HAIR_COLORS = [0x2b2119, 0x4a3120, 0x151515, 0x5e4630, 0x7a5636, 0x3a3a45];
 
-function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, hair = 0x2b2119, scale = 1 } = {}) {
+// gender(07-12 拍板「一半男生,不要穿裙子」):m=直筒褲頭+短髮;f=裙襬微張+妹妹頭
+function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, hair = 0x2b2119, gender = "m", scale = 1 } = {}) {
   const group = new THREE.Group();
   const rig = new THREE.Group();
   group.add(rig);
@@ -169,7 +170,12 @@ function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, hair 
   const belly = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.21, 0.3, 14), shirtMat);
   belly.position.y = -0.05;
   waist.add(belly);
-  const hip = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.27, 0.2, 14), pantsMat);
+  const hip = new THREE.Mesh(
+    gender === "f"
+      ? new THREE.CylinderGeometry(0.22, 0.29, 0.22, 14) // 女:裙襬微張
+      : new THREE.CylinderGeometry(0.22, 0.235, 0.2, 14), // 男:直筒褲頭,不要裙子
+    pantsMat,
+  );
   hip.position.y = -0.26;
   waist.add(hip);
   const beltLine = new THREE.Mesh(new THREE.CylinderGeometry(0.225, 0.225, 0.06, 14), new THREE.MeshStandardMaterial({ color: 0x5a3d22, roughness: 0.6 }));
@@ -199,9 +205,9 @@ function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, hair 
   hairCap.position.y = 2.01;
   hairCap.rotation.x = -0.22; // 微往後腦傾:露出額頭,但正面仍看得到瀏海線
   rig.add(hairCap);
-  // 後腦帶:phi 只掃後半球(z<0),到耳線為止——耳朵前面完全無髮
+  // 後腦帶:phi 只掃後半球(z<0),到耳線為止——耳朵前面完全無髮;男=俐落短髮,女=妹妹頭蓋後頸
   const hairBack = new THREE.Mesh(
-    new THREE.SphereGeometry(0.255, 16, 8, Math.PI, Math.PI, Math.PI * 0.35, Math.PI * 0.38),
+    new THREE.SphereGeometry(0.255, 16, 8, Math.PI, Math.PI, Math.PI * 0.35, Math.PI * (gender === "f" ? 0.38 : 0.22)),
     hairMat,
   );
   hairBack.position.y = 2.0;
@@ -556,6 +562,7 @@ export class ArcheryGame {
           shirt: shirts[(i + (side > 0 ? 2 : 0)) % shirts.length],
           pants: 0x2c3340,
           hair: HAIR_COLORS[(i * 2 + (side > 0 ? 3 : 0)) % HAIR_COLORS.length],
+          gender: (i + (side > 0 ? 1 : 0)) % 2 === 0 ? "m" : "f", // 一半男生一半女生(07-12 拍板)
           scale: 0.9,
         });
         p.group.position.set(side * 4.2, 0, 1.5 + i * 2.1);
