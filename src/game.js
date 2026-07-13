@@ -159,7 +159,7 @@ function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, hair 
   // 身體雙節:胸腔(上)+腰部(下)——腰要收進去(07-12 使用者點名不要水桶腰):
   // 胸寬 0.3 → 腰最細 0.21 → 髖再放回 0.27,側影有曲線
   // 比例(07-12 拍板):上身短一點、下半身/腿長一點、頭胸之間有脖子
-  const chest = new THREE.Mesh(new THREE.CapsuleGeometry(0.3, 0.34, 6, 12), shirtMat);
+  const chest = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.76, 0.32) /* 矩形身體(07-13 鐵則) */, shirtMat);
   chest.position.y = 1.3;
   rig.add(chest);
   const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.1, 0.2, 12), skinMat);
@@ -167,18 +167,18 @@ function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, hair 
   rig.add(neck);
   const waist = new THREE.Group();
   waist.position.y = 1.04;
-  const belly = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.21, 0.3, 14), shirtMat);
+  const belly = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.3, 0.27), shirtMat);
   belly.position.y = -0.05;
   waist.add(belly);
   const hip = new THREE.Mesh(
     gender === "f"
-      ? new THREE.CylinderGeometry(0.22, 0.29, 0.22, 14) // 女:裙襬微張
-      : new THREE.CylinderGeometry(0.22, 0.235, 0.2, 14), // 男:直筒褲頭,不要裙子
+      ? new THREE.BoxGeometry(0.48, 0.22, 0.3) // 女:裙襬微張
+      : new THREE.BoxGeometry(0.42, 0.2, 0.27), // 男:直筒褲頭,不要裙子
     pantsMat,
   );
   hip.position.y = -0.26;
   waist.add(hip);
-  const beltLine = new THREE.Mesh(new THREE.CylinderGeometry(0.225, 0.225, 0.06, 14), new THREE.MeshStandardMaterial({ color: 0x5a3d22, roughness: 0.6 }));
+  const beltLine = new THREE.Mesh(new THREE.BoxGeometry(0.43, 0.06, 0.28), new THREE.MeshStandardMaterial({ color: 0x5a3d22, roughness: 0.6 }));
   beltLine.position.y = -0.15;
   waist.add(beltLine);
   rig.add(waist);
