@@ -268,6 +268,14 @@ game.onHudUpdate = (state) => {
       : "按住拉弓";
   ui.steadyValue.textContent = `${Math.round(state.steadiness * 100)}%`;
   setMeterFill(ui.drawMeterFill, state.drawPower);
+  { // 07-14 拍板:中下方大拉弓力道條
+    const bp = document.getElementById("bigPower"), bf = document.getElementById("bigPowerFill");
+    if (bp) {
+      bp.hidden = state.phaseLabel !== "拉弓";
+      bf.style.transform = `scaleX(${Math.min(1, state.drawPower)})`;
+      bf.classList.toggle("full", state.drawPower >= 1);
+    }
+  }
   setMeterFill(ui.steadyFill, state.steadiness);
   syncOverlay(state.overlay);
 };
