@@ -160,13 +160,13 @@ function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, hair 
   // 胸寬 0.3 → 腰最細 0.21 → 髖再放回 0.27,側影有曲線
   // 比例(07-12 拍板):上身短一點、下半身/腿長一點、頭胸之間有脖子
   const chest = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.76, 0.32) /* 矩形身體(07-13 鐵則) */, shirtMat);
-  chest.position.y = 1.3;
+  chest.position.y = 1.42;
   rig.add(chest);
   const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.1, 0.2, 12), skinMat);
-  neck.position.y = 1.76;
+  neck.position.y = 1.88;
   rig.add(neck);
   const waist = new THREE.Group();
-  waist.position.y = 1.04;
+  waist.position.y = 1.16;
   const belly = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.3, 0.27), shirtMat);
   belly.position.y = -0.05;
   waist.add(belly);
@@ -184,13 +184,13 @@ function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, hair 
   rig.add(waist);
 
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.25, 18, 18), skinMat);
-  head.position.y = 2.0;
+  head.position.y = 2.12;
   rig.add(head);
 
   // 耳朵(所有人物都要有,07-12 拍板):頭兩側膚色半橢球,壓扁貼頭
   const earL = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 10), skinMat);
   earL.scale.set(0.45, 1, 0.8);
-  earL.position.set(-0.245, 1.99, 0);
+  earL.position.set(-0.245, 2.11, 0);
   rig.add(earL);
   const earR = earL.clone();
   earR.position.x = 0.245;
@@ -202,7 +202,7 @@ function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, hair 
     new THREE.SphereGeometry(0.265, 18, 12, 0, Math.PI * 2, 0, Math.PI * 0.46),
     hairMat,
   );
-  hairCap.position.y = 2.01;
+  hairCap.position.y = 2.13;
   hairCap.rotation.x = -0.22; // 微往後腦傾:露出額頭,但正面仍看得到瀏海線
   rig.add(hairCap);
   // 後腦帶:phi 只掃後半球(z<0),到耳線為止——耳朵前面完全無髮;男=俐落短髮,女=妹妹頭蓋後頸
@@ -210,26 +210,26 @@ function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, hair 
     new THREE.SphereGeometry(0.255, 16, 8, Math.PI, Math.PI, Math.PI * 0.35, Math.PI * (gender === "f" ? 0.38 : 0.22)),
     hairMat,
   );
-  hairBack.position.y = 2.0;
+  hairBack.position.y = 2.12;
   rig.add(hairBack);
 
   // 臉:貼 +z(與身體同向)
   const faceDark = new THREE.MeshBasicMaterial({ color: 0x25201a });
   const faceWhite = new THREE.MeshBasicMaterial({ color: 0xffffff });
   const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.05, 10, 10), faceWhite);
-  eyeL.position.set(-0.09, 2.06, 0.21);
+  eyeL.position.set(-0.09, 2.18, 0.21);
   rig.add(eyeL);
   const eyeR = eyeL.clone();
   eyeR.position.x = 0.09;
   rig.add(eyeR);
   const pupilL = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 8), faceDark);
-  pupilL.position.set(-0.09, 2.06, 0.25);
+  pupilL.position.set(-0.09, 2.18, 0.25);
   rig.add(pupilL);
   const pupilR = pupilL.clone();
   pupilR.position.x = 0.09;
   rig.add(pupilR);
   const browL = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.02, 0.02), faceDark);
-  browL.position.set(-0.09, 2.14, 0.22);
+  browL.position.set(-0.09, 2.26, 0.22);
   browL.rotation.z = 0.16;
   rig.add(browL);
   const browR = browL.clone();
@@ -237,7 +237,7 @@ function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, hair 
   browR.rotation.z = -0.16;
   rig.add(browR);
   const smile = new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.014, 8, 14, Math.PI), faceDark);
-  smile.position.set(0, 1.92, 0.21);
+  smile.position.set(0, 2.04, 0.21);
   smile.rotation.z = Math.PI;
   rig.add(smile);
 
@@ -255,7 +255,7 @@ function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, hair 
       end: "hand",
       thumbSide: x < 0 ? 1 : -1, // 拇指朝身體側
     });
-    arm.pivot.position.set(x, 1.6, 0);
+    arm.pivot.position.set(x, 1.72, 0);
     // 自然垂放時肘微彎,不要筆直樂高手
     arm.joint.rotation.x = -0.18;
     rig.add(arm.pivot);
@@ -270,13 +270,13 @@ function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, hair 
       upperMaterial: pantsMat,
       lowerMaterial: pantsMat,
       endMaterial: shoeMat,
-      upperLen: 0.34,
-      lowerLen: 0.32,
+      upperLen: 0.40,
+      lowerLen: 0.38,
       upperRadius: 0.09,
       lowerRadius: 0.072,
       end: "foot",
     });
-    leg.pivot.position.set(x, 0.88, 0);
+    leg.pivot.position.set(x, 1.0, 0);
     // 站姿:大腿微前、膝微彎,重心自然
     leg.pivot.rotation.x = -0.05;
     leg.joint.rotation.x = 0.1;
