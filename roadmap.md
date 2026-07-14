@@ -1,27 +1,27 @@
-# roadmap — HFPC 3D 系列(2026-07-14 對齊)
+# roadmap — HFPC 3D 系列(2026-07-15 對齊)
 
 ## ✅ 已完成(別重做)
 
-- 3D 運動 19+ 關全上線(射箭/田徑四項/保齡/冰壺/冰球/12碼PK/棒球/撞球/足球/網羽…)+武鬥七家(命中感全套/地獄勇次郎/裝束寫實/長腿 v2)
-- 聖經 3D:約拿單、大衛甩石、彼得走海、參孫打獅子(+五招)、大衛躲槍、雅各摔跤——全數上線+大廳/作品集/站名冊同步
-- PK/冰球:七鍵守門(六式撲救+挑射)、倒數 5 秒排隊蓄力、鏡像修正、預承諾撲救
-- 八色主題 theme-kit v3 套五入口頁;聖經大廳 113 關 sw v70;portfolio 85 站
-- 工具:3d-figure-kit(28 patches)/figure-check/theme-kit skills、/mirror-check、/new-bible3d、figure-rules-checker agent、gamefleet MCP、netlify-deploy-guard hook——已推 hfpc-claude-skills
-- athletics 100 公尺三輪修(凍結/力道條/按住衝刺+擺臂)
+- **聖經 3D 佇列全清**:約拿單/大衛甩石/彼得走海/參孫打獅子(五招)/大衛躲槍/雅各摔跤/**基甸三百勇士**(潛行光錐+三信號)——僅剩約阿施射箭
+- **奧運 23 主賽**:射箭/田徑四項/保齡/冰壺/冰球/12碼PK/棒球/撞球/足球/網桌羽(racket 三模式)/**籃球全場5v5**/**沙灘排球2v2**/**滑雪跳台**+武鬥七家
+- 籃球CO 上線+整輪平衡(07-15):每節3分、手控罰球+FT只凍罰球員、灌籃真扣+精彩視角、AI 抄截/命中/犯規平衡、界外線隨球場推導、V 鍵恆可切視角
+- 排球=AI 重介入範式活例;八色主題五入口頁;工具鏈:3d-figure-kit(29 patches)/theme-kit/figure-check/timing-meter-kit、/mirror-check、/new-bible3d、/new-sport3d、/smoke3d(凍結三指標)、gamefleet fleet_smoke(18 站全綠)
+- 兩條新雷已固化(timing-meter-kit):選單期 NaN 鏡頭中毒、edge-tts 短句斷流
 
 ## 🔜 待做(CP 值 × 開發時間排序)
 
-| # | 事項 | ★價值 | ⏱估時 | 說明 |
+| # | 事項 | ★價值 | ⏱估時 | 做法 |
 |---|------|-------|-------|------|
-| 1 | 約阿施射箭 3D | ★★★★★ | 2-3h | 聖經佇列最後一項;`/new-bible3d joash-arrows archery3d 王下13:18-19`(不揭示次數的擊打機制) |
-| 2 | 籃球CO 觀眾臉+聲 | ★★★★ | 30m | agape250 07-12 交辦殘項,檔在 HFP 機桌面;規格見 racket3d HANDOFF |
-| 3 | /mirror-check 掃全系列 | ★★★★ | 1h | PK/冰球/大衛已修;其餘 3D(棒球盜壘/足球/武鬥視角)未逐視角驗過 |
-| 4 | loop-freeze 冒煙進 /smoke3d | ★★★★ | 1h | this.running 撞名事故固化:每模式進場後驗「RAF 活著+狀態有前進」 |
-| 5 | gamefleet fleet_smoke | ★★★ | 1h | MCP 加一鍵全站 200+sw 版本+title 對照(現有 fleet_check 只查清單) |
-| 6 | 冬奧第二彈:滑雪跳台 | ★★★ | 2h | archery「蓄力+拋物線」家族直接換皮;奧運頁+1 |
-| 7 | 武鬥七家難度量化 | ★★ | 1h | difficulty-balancer agent 自我對戰跑通關率,校 hell 檔勸退度 |
-| 8 | lesson-prep 串新 3D 關 | ★★ | 30m | 主日學課表把大衛躲槍/雅各摔跤排進「靠神得勝」主題 |
+| 1 | 約阿施射箭 3D | ★★★★★ | 2-3h | `/new-bible3d joash-arrows archery3d 王下13:18-19`(聖經佇列最後一項) |
+| 2 | 射擊(10m 氣步槍) | ★★★★★ | 1.5h | `/new-sport3d shooting3d archery3d 射擊`(屏息晃動現成) |
+| 3 | 跳遠 | ★★★★★ | 1.5h | athletics3d 加第 5 事件(100m 連點+踏板綠燈,timing-meter-kit) |
+| 4 | 速度滑冰(冬奧) | ★★★★★ | 1.5h | 100m 皮改冰面+彎道 |
+| 5 | 大衛牧羊趕獅熊(撒上17:34) | ★★★★★ | 1.5h | samson-lion 換皮(獅子+熊輪番),歌利亞前傳 |
+| 6 | 耶利哥城牆(書6) | ★★★★★ | 2h | peter-sea 節奏皮:繞城七圈+吹角時機→城牆倒塌演出 |
+| 7 | 舉重 | ★★★★ | 2h | 抓舉挺舉雙綠區(timing-meter-kit) |
+| 8 | 冬季兩項 | ★★★★ | 2h | 100m 節奏+archery 射擊拼裝 |
+| 9 | 籃球灌籃距離拍板 | ★★★ | 10m | 現 5m;使用者問 10m,建議 6.5m 折衷——**等使用者拍板** |
+| 10 | 高爾夫/雪橇/攀岩/彼得撒網/平靜風浪/挪亞鴿子 | ★★★ | 各2.5-3h | 見 07-14 建議清單(記憶) |
 
 ## 🚫 刻意不做
-
-- 3D 版取代 2D(鐵則:並列);Web Speech 機器聲 fallback;聖經皮用勇次郎當敵人。
+- 3D 取代 2D(鐵則:並列);Web Speech 機器聲;聖經皮用勇次郎;10m 起跳灌籃(超過三分線,破壞平衡——除非使用者堅持)。

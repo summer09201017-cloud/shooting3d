@@ -3,7 +3,16 @@
 > 本資料夾=archery3d 遊戲快照,同時是 /sit-down 的系列樞紐(記憶檔綁這個路徑)。
 > **GitHub 是唯一真相**;桌面 zip 只是備援快照。帳號 summer09201017-cloud。
 
-## 現況(2026-07-14 晚)
+## 現況(2026-07-15 晚)
+
+- **佇列全清**:籃球CO 轉線上(hfpc-basketball3d)+整輪平衡、基甸三百勇士(hfpc-gideon300-3d)、
+  沙灘排球 2v2(hfpc-volleyball3d,AI 重介入範式)、滑雪跳台(hfpc-skijump3d)全部上線+四同步。
+- 大廳 114 關 sw v71;奧運頁 23 主賽;portfolio 89;gamefleet 18 站 fleet_smoke 全綠。
+- 兩條新雷固化在 timing-meter-kit skill:選單期 NaN 鏡頭中毒、edge-tts 短句斷流。
+- 未拍板:籃球灌籃距離(現 5m,建議 6.5m 折衷)。
+- 🔜 見 roadmap.md(第一列=約阿施射箭;/new-bible3d、/new-sport3d 一條龍可用)。
+
+## 前一輪現況(2026-07-14 晚)
 
 - **archery3d 本體**:可玩、上線(hfpc-archery3d)、關節人物鐵則活範例;本日無改動。
 - **系列本日大收割(細節見 讀我-HANDOFF.txt ★07-14 段)**:
