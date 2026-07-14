@@ -1,5 +1,7 @@
 # 3D 全場籃球遊戲
 
+> 系列樞紐:現況與下一步見 CLAUDE.md / roadmap.md / 讀我-HANDOFF.txt(★07-14 段)。
+
 這是一個用 `Vite + Three.js` 製作的 3D 全場 5v5 籃球遊戲原型，支援：
 
 - 玩家隊對戰 AI

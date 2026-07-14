@@ -4,6 +4,25 @@
 GitHub 帳號:summer09201017-cloud/archery3d。GitHub 是唯一真相;桌面 zip 只是備援快照。
 ============================================================
 
+★★★★★ 最新輪(2026-07-14 晚,HFP 機:系列大收割,給 agape250 的下一棒)★★★ 先讀這段 ★★★
+================================================================================
+本資料夾同時是 /sit-down 系列樞紐;本日 archery3d 本體無改動,系列增量如下(全部已 push GitHub):
+ A. 🆕 上線三款:david-spear3d(大衛躲槍,撒上18;雙手齊擲 2~3 槍加難+鏡像修)、
+    jacob-wrestle3d(雅各摔跤,創32;夜溪無觀眾+瘸腿結局)、athletics 100 公尺(佇列⑤,三輪修:
+    ①sprint 誤用 this.running 蓋掉主迴圈 RAF 旗標=選跑步整遊戲凍結 ②力道大條回選單要藏
+    ③按住=穩定衝刺/連點好節奏=極速+跑步擺臂不被 updateThrowerPose 蓋掉)。
+ B. 🆕 PK/冰球守門三修:倒數 5 秒(倒數中按住=排隊)、撲救鏡像、預承諾(defAim 可按;
+    _beginShot 重置、_shoot 只在 human 進攻時清)。samson 加五招(上鉤U/昇龍I/飛踢O/迴旋P/過肩K)。
+ C. 🆕 八色主題 theme-kit v3(深4:原夜/深紫/墨綠/奧運深藍+護目淺4)套五入口頁;
+    聖經大廳預設=墨綠夜;大廳 113 關 sw v70;portfolio 85。
+ D. 🆕 工具已推 hfpc-claude-skills(120/57/15):3d-figure-kit(28 patches)、figure-check、
+    theme-kit、/mirror-check(鏡像鐵則)、/new-bible3d(換皮一條龍)、figure-rules-checker agent、
+    references/machine-env-0714(gamefleet MCP+netlify-deploy-guard hook,還原走 claude-env-backup)。
+ E. 📌 下一棒(agape250):cd hfpc-claude-skills && git pull && install.bat(+robocopy commands/agents)
+    → 開工作資料夾 /sit-down → 第一優先=約阿施射箭(/new-bible3d joash-arrows archery3d 王下13:18-19);
+    次優先=籃球CO 觀眾殘項(在 HFP 機,可跳過)。完整排序見本資料夾 roadmap.md。
+================================================================================
+
 【這是什麼】
 3D 射箭(Three.js,3d-game-kit 範式,骨架照抄 籃球CO/baseball3d)。
 戰略定位:「蓄力→放開+拋物線」家族的**地基**——下一波 3D 運動
