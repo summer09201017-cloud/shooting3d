@@ -6,6 +6,7 @@
 - **奧運 23 主賽**:射箭/田徑四項/保齡/冰壺/冰球/12碼PK/棒球/撞球/足球/網桌羽(racket 三模式)/**籃球全場5v5**/**沙灘排球2v2**/**滑雪跳台**+武鬥七家
 - 籃球CO 上線+整輪平衡(07-15):每節3分、手控罰球+FT只凍罰球員、灌籃真扣+精彩視角、AI 抄截/命中/犯規平衡、界外線隨球場推導、V 鍵恆可切視角
 - 排球=AI 重介入範式活例;八色主題五入口頁;工具鏈:3d-figure-kit(29 patches)/theme-kit/figure-check/timing-meter-kit、/mirror-check、/new-bible3d、/new-sport3d、/smoke3d(凍結三指標)、gamefleet fleet_smoke(18 站全綠)
+- **騎乘引擎上線(equestrian3d 馬術,07-15晚)**——換皮佇列:騎驢進耶路撒冷/巴蘭騎驢;下一個新引擎=航海(帆船+保羅海難/約拿)
 - 灌籃距離已拍板 6m(07-15晚,已上線);joash-arrows 端到端驗證腳本範式(scripts/verify-joash.mjs)
 - 兩條新雷已固化(timing-meter-kit):選單期 NaN 鏡頭中毒、edge-tts 短句斷流
 

@@ -14,7 +14,13 @@ GitHub 帳號:summer09201017-cloud/archery3d。GitHub 是唯一真相;桌面 zip
  C. 📌 同步:大廳雙卡(war/kings 並列 2D)sw v72 已 push(⏳deploy 待跑);portfolio 90 已 push(自動部署);
     gamefleet sites.json 聖經3D=8 站(live+reference)。修 [hidden] CSS 蟲(大力道條其實從沒藏過,
     archery3d 本體也有——下輪掃全系列)。
- D. ✅ 全數落地:github.com/summer09201017-cloud/joash-arrows(public)已 push;大廳 hfpc-bible-games 已部署(sw v72)。
+ D. ✅ 全數落地:joash-arrows public repo 已 push;大廳已部署(sw v72)。
+ E. 🆕 騎乘引擎首發上線:equestrian3d 3D 馬術障礙賽 https://hfpc-equestrian3d.netlify.app
+    (CatmullRom 閉環賽道+skijump 綠區判定+四足馬七色可換+溫柔規則;Playwright 全綠;
+    repo public+奧運頁31卡/portfolio 91/gamefleet 四同步;奧運頁 repo↔線上漂移已收回——
+    HFP 機 07-15 三卡只部署未 push,已用線上版為基準補齊)。
+ F. 📌 拍板佇列(07-15晚):①騎驢進耶路撒冷(玩家=小驢駒,不操控耶穌)②巴蘭騎驢躲避天使(民22)
+    ③航海引擎(帆船/風浪板+保羅海難/約拿風暴船)。籃球灌籃 6m 已上線。gh CLI 已裝未 auth。
 ================================================================================
 
 ★★★★★ 最新輪(2026-07-15,HFP 機:佇列全清)★★★ 先讀這段 ★★★
