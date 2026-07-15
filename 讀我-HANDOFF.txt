@@ -19,8 +19,11 @@ GitHub 帳號:summer09201017-cloud/archery3d。GitHub 是唯一真相;桌面 zip
     (CatmullRom 閉環賽道+skijump 綠區判定+四足馬七色可換+溫柔規則;Playwright 全綠;
     repo public+奧運頁31卡/portfolio 91/gamefleet 四同步;奧運頁 repo↔線上漂移已收回——
     HFP 機 07-15 三卡只部署未 push,已用線上版為基準補齊)。
+ F2.🆕 騎射 horsearchery3d 上線 https://hfpc-horsearchery3d.netlify.app(騎乘×射箭雙引擎混搭首例;
+    奧運頁32卡/portfolio 92/gamefleet 同步;gh CLI 已認證,repo 一條龍復活)。
+    籃球CO 三修:灌籃鍵 F/Alt+觸控鈕、AI 抄截調弱(1.5m/0.009/cd3.2);馬全系列鬃毛三件套+長腿v2。
  F. 📌 拍板佇列(07-15晚):①騎驢進耶路撒冷(玩家=小驢駒,不操控耶穌)②巴蘭騎驢躲避天使(民22)
-    ③航海引擎(帆船/風浪板+保羅海難/約拿風暴船)。籃球灌籃 6m 已上線。gh CLI 已裝未 auth。
+    ③航海引擎(帆船/風浪板+保羅海難/約拿風暴船)④騎士比武 jousting3d(武鬥館,兩騎對衝時機出槍擊盾,無KO)。
 ================================================================================
 
 ★★★★★ 最新輪(2026-07-15,HFP 機:佇列全清)★★★ 先讀這段 ★★★
