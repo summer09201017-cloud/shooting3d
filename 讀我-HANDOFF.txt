@@ -29,6 +29,14 @@ GitHub 帳號:summer09201017-cloud/archery3d。GitHub 是唯一真相;桌面 zip
  F4.🆕 馬術雙騎競速模式上線(AI 藍騎士同場,碰桿=踉蹌減速,先衝線勝,贏灑彩花)+零罰分彩花。
     ★修 skills repo CI 連環紅(07-14 起):timing-meter-kit 沒歸類+四文件計數 120/57 沒更新——
     gen-catalog 重產+sync-doc-counts --fix,CI 已轉綠,失敗信停止。
+ G. 🏠 回家交接(給 HFP 機,07-15 深夜):
+    ①cd hfpc-claude-skills && git pull && install.bat(+robocopy commands/agents)+跑一次
+      node scripts/install-hooks.mjs(裝 catalog-keeper,別再讓 CI 連環紅)。
+    ②gamefleet:把 references/machine-env-0714/gamefleet/sites.json 蓋到 ~/.claude/gamefleet/
+      sites.json(本日 +5 站:joash/equestrian/horsearchery/jousting 與武鬥館)。
+    ③新 public repo 四個:joash-arrows/equestrian3d/horsearchery3d/jousting3d(要改先 clone)。
+    ④下一棒=/new-mount3d palm-donkey(騎驢進耶路撒冷,玩家=小驢駒);建議清單見 roadmap 💡表
+      (第一名=/add-game-card 一鍵加卡)。桌面壓縮檔=archery3d-交接-2026-07-15晚.zip。
  F. 📌 拍板佇列(07-15晚):①騎驢進耶路撒冷(玩家=小驢駒,不操控耶穌)②巴蘭騎驢躲避天使(民22)
     ③航海引擎(帆船/風浪板+保羅海難/約拿風暴船)④騎士比武 jousting3d(武鬥館,兩騎對衝時機出槍擊盾,無KO)。
 ================================================================================
