@@ -14,7 +14,7 @@ GitHub 帳號:summer09201017-cloud/archery3d。GitHub 是唯一真相;桌面 zip
  C. 📌 同步:大廳雙卡(war/kings 並列 2D)sw v72 已 push(⏳deploy 待跑);portfolio 90 已 push(自動部署);
     gamefleet sites.json 聖經3D=8 站(live+reference)。修 [hidden] CSS 蟲(大力道條其實從沒藏過,
     archery3d 本體也有——下輪掃全系列)。
- D. ⏳ 未完:joash-arrows GitHub repo 建立+push(權限層要使用者點名)、大廳 netlify deploy。
+ D. ✅ 全數落地:github.com/summer09201017-cloud/joash-arrows(public)已 push;大廳 hfpc-bible-games 已部署(sw v72)。
 ================================================================================
 
 ★★★★★ 最新輪(2026-07-15,HFP 機:佇列全清)★★★ 先讀這段 ★★★
