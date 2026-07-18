@@ -703,7 +703,7 @@ button.active {
 .commentary-bar {
   position: fixed;
   left: 50%;
-  top: 72px;
+  top: 12.5rem; /* 07-18:移到記分板+訊息帶下方 */
   transform: translateX(-50%);
   max-width: min(86vw, 640px);
   padding: 8px 18px;
@@ -729,7 +729,7 @@ button.active {
   100% { opacity: 0; }
 }
 @media (max-width: 720px) {
-  .commentary-bar { top: 58px; font-size: 14px; padding: 6px 14px; }
+  .commentary-bar { top: 10.8rem; font-size: 14px; padding: 6px 14px; }
 }
 
 /* 07-14 拍板:大力道條(中下方,由左到右亮起,投影可讀) */
@@ -738,3 +738,6 @@ button.active {
 .big-track { width: min(46vw, 440px); height: 20px; border-radius: 999px; background: rgba(255,255,255,.14); overflow: hidden; }
 .big-fill { height: 100%; width: 100%; transform: scaleX(0); transform-origin: left; border-radius: 999px; background: linear-gradient(90deg, #7de08c, #ffd24a 55%, #ff7a18); box-shadow: 0 0 14px rgba(255,210,74,.85); }
 .big-fill.full { background: linear-gradient(90deg, #ffd24a, #ff5544); }
+
+/* 防疫(07-18 批次):殼層面板 display:flex 會蓋過 UA 的 [hidden]{display:none} */
+[hidden] { display: none !important; }
