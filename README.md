@@ -1,57 +1,31 @@
-# 3D 全場籃球遊戲
+# 3D 射擊(shooting3d・10m 氣步槍)
 
-> 系列樞紐:現況與下一步見 CLAUDE.md / roadmap.md / 讀我-HANDOFF.txt(★07-14 段)。
+> 室內靶場,10 公尺氣步槍。移動滑鼠瞄準、按住屏息讓準星收斂、在「穩定窗」放開擊發——
+> 室內無風,挑戰全在呼吸節奏。正中十環靶心!
 
-這是一個用 `Vite + Three.js` 製作的 3D 全場 5v5 籃球遊戲原型，支援：
+## 玩法
 
-- 玩家隊對戰 AI
-- `入門 / 標準 / 職業` 三段 AI 強度
-- 手機與 PC 共用操作
-- 本機存檔與讀檔
-- PWA 安裝到主畫面
+- **練習場**:無限發數,自由熟悉屏息節奏。
+- **計分賽**:6 組 × 3 發,滿分 180。
+- **十環挑戰**:10 發,盡量射進 9、10 環。
+- **雙人同機**:兩人輪流用同一組鍵/滑鼠,各 10 發比總分(P1 藍 vs P2 紅)。
 
-## 啟動方式
+滑鼠瞄準、方向鍵微調;按住畫面/空白鍵屏息,準星先收斂變穩,屏太久會缺氧回晃——
+在穩定窗放開擊發最準。難度六檔(幼兒~職業),越難晃越大、穩定窗越短、還看得見心跳脈動。
 
-```bash
-npm install
-npm run dev
-```
+★安全:準星掃到相鄰選手=禁止擊發(槍口紀律),不是遊戲橋段。
 
-## 建置
+## 開發
 
 ```bash
-npm run build
+npm install && npm run dev
+npm run build && npx vite preview --port 4191
+node scripts/gen-voice.mjs                                    # 烤語音(msedge-tts,累加式)
+node scripts/verify-shooting.mjs http://localhost:4191 scratch # 四關端到端驗收
 ```
 
-## 操作
+## 部署(Cloudflare Pages)
 
-- 移動: `WASD` / 方向鍵
-- 投籃: `Space`
-- 傳球: `J`
-- 抄截 / 防守動作: `K`
-- 切換防守球員: `Tab`
-- 衝刺: `Shift`
-
-手機版可直接使用畫面下方的虛擬按鈕。
-
-## 手機安裝
-
-這個專案已經具備 PWA 所需的 `manifest` 與 `service worker`。
-
-- Android: 部署到 HTTPS 網址後，可直接點選「安裝到手機」
-- iPhone: 用 Safari 開啟後，從分享選單選擇「加入主畫面」
-
-如果你要進一步包成 APK / App Store 專案，可以再接 `Capacitor`。
-
-## 2026-07-10 更新
-
-- **年齡難度檔**:AI 強度新增「幼兒(超簡單)/兒童(簡單)」兩檔(原入門/標準/職業保留)——
-  AI 更慢更手軟、玩家輔助更高、投籃時機綠區放寬(幼 2.1×/童 1.55×,HUD 與判定同步)。
-- **中文播報**:畫面上方新增播報字幕條(進球/三分/抄截/籃板/節末/終場,隨機詞庫+
-  反超/追平/拉開情境詞),同一句用 zh-TW 語音同步唸(可用音效開關靜音)。
-
-### 2026-07-10 補:播報換人聲(鐵律)
-
-- 播報改**預烤 mp3 人聲**(微軟雲哲神經語音;`node scripts/gen-voice.mjs` 烤製,產物進 git)。
-- ★人聲鐵律:不用 Web Speech 機器聲——字幕可帶隊名/比分,唸出來的一律是 `src/voicePhrases.js` 的固定句;
-  沒烤過的句子只出字幕不唸。新增播報詞改 voicePhrases.js 再重跑烤製。
+```bash
+npx wrangler pages deploy dist --project-name hfpc-shooting3d
+```

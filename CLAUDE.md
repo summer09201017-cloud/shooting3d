@@ -1,36 +1,40 @@
-# CLAUDE.md — archery3d(3D 射箭)+ HFPC 3D 系列樞紐資料夾
+# CLAUDE.md — shooting3d(3D 射擊・10m 氣步槍)
 
-> 本資料夾=archery3d 遊戲快照,同時是 /sit-down 的系列樞紐(記憶檔綁這個路徑)。
-> **GitHub 是唯一真相**;桌面 zip 只是備援快照。帳號 summer09201017-cloud。
+> 2026-07-19 換皮自 archery3d(大表 A1「射擊 10m 氣步槍」)。帳號 summer09201017-cloud。
+> ★上架平台=Cloudflare Pages(新站鐵則,見 [[netlify-to-cloudflare-migrate]]):hfpc-shooting3d.pages.dev。
 
-## 現況(2026-07-15 晚)
+## 這是什麼
 
-- **佇列全清**:籃球CO 轉線上(hfpc-basketball3d)+整輪平衡、基甸三百勇士(hfpc-gideon300-3d)、
-  沙灘排球 2v2(hfpc-volleyball3d,AI 重介入範式)、滑雪跳台(hfpc-skijump3d)全部上線+四同步。
-- 大廳 114 關 sw v71;奧運頁 23 主賽;portfolio 89;gamefleet 18 站 fleet_smoke 全綠。
-- 兩條新雷固化在 timing-meter-kit skill:選單期 NaN 鏡頭中毒、edge-tts 短句斷流。
-- 未拍板:籃球灌籃距離(現 5m,建議 6.5m 折衷)。
-- 🔜 見 roadmap.md(第一列=約阿施射箭;/new-bible3d、/new-sport3d 一條龍可用)。
+archery3d 的射箭→射擊換皮。**核心機制大改**(不只換模型):
 
-## 前一輪現況(2026-07-14 晚)
+- **拉弓蓄力 → 屏息穩定窗**:按住=屏息,準星先收斂(steadyTime)→ 最穩的 sweetTime 窗 →
+  屏太久缺氧回晃(swayGrow)。放開=擊發。DIFFICULTY_PRESETS 用 steadyTime/sweetTime/swayGrow/heart
+  取代 wind/drawDuration;距離恆 10m(ISSF)。
+- **去拋物線**:彈丸直線瞬達(arrowFlight.arc=0,dur=dist/120);判定=畫面不變(先算命中點再演)。
+- **室內無風**:wind 恆 0;挑戰全在呼吸節奏+心跳脈動(hard 難度連心跳都看得見)。
+- **槍口紀律(取代射觀眾喜劇)**:準星掃到相鄰選手=禁止擊發+安全提醒(emit muzzle-safety),
+  絕不做成「射人」橋段——兒童安全紅線。
+- **雙人同機輪流賽**(duel-2p-kit §7B):modeId=duel2p,turnSide 輪替,共用同一組滑鼠/鍵,
+  各 10 發比總分(P1 藍/P2 紅)。
 
-- **archery3d 本體**:可玩、上線(hfpc-archery3d)、關節人物鐵則活範例;本日無改動。
-- **系列本日大收割(細節見 讀我-HANDOFF.txt ★07-14 段)**:
-  - ✅ 新上線:david-spear3d(大衛躲槍+雙手齊擲加難)、jacob-wrestle3d(雅各摔跤+瘸腿結局)
-  - ✅ hockey3d/penalty3d 七鍵守門+倒數 5 秒+預承諾撲救;samson 五招;athletics 100 公尺三輪修
-  - ✅ 八色主題(theme-kit v3)套五入口頁;聖經大廳預設墨綠夜(sw v70,113 關)
-  - ✅ 工具全數固化並推上 hfpc-claude-skills(120 skills/57 commands/15 agents)
-- 🔜 待做:見 roadmap.md(第一列=約阿施射箭 3D)。
+## 模型(makeRifle / makePellet / makeHole 取代 makeBow/makeArrow)
 
-## 鐵則(細節在記憶與 hfpc-claude-skills)
+氣步槍=槍托+機匣+槍管+覘孔照門+準星護圈;彈丸=小亮點+短曳光;靶上留黑色彈孔(白邊)。
+靶=白靶紙+黑色瞄準區+細白分環線+紅點靶心;TARGET_R=0.3(比射箭靶小)。
 
-1. 關節人物/長腿 v2/矩形身體——活範例=本 repo makePerson+3d-figure-kit patches。
-2. 鏡像視角輸入必翻轉(/mirror-check);經文必 cuv 查驗;人聲=預烤 mp3 分聲(雲哲/曉臻)。
-3. 保留 2D 加 3D;入口頁都要八色主題;fork 必清 .netlify;deploy 必 --site;大廳 build 產物在 **site/**。
-4. 跟使用者溝通一律繁體中文。
+## 驗證
 
-## 本機地雷
+`npm run build && npx vite preview --port 4191`;
+`node scripts/verify-shooting.mjs http://localhost:4191 scratch`——四關全綠+0 pageerror:
+①standard 屏息擊發 3 發得分>0+彈道 arc=0 ②bullseye kids 有內圈命中 ③duel2p 換手+勝負
+④槍口安全(crowdAim 時擊發被擋)。語音 13 句(雲哲)已烤。
 
-- lobby/portfolio data.js 是 CRLF(錨點用 \r\n;中文字直打勿用 \uXXXX)。
-- `this.running` 之類的狀態名要先 grep 再用(athletics 主迴圈旗標撞名=整個遊戲凍結事故)。
-- Playwright 分頁背景化 RAF 假凍結→先 bringToFront;WebGL 截圖用 canvas.toDataURL 同步渲染後讀。
+## dev hook
+
+`window.__shooting3d`(+`__archery3d` 引擎舊名雙掛)+`window.__game`(/smoke3d 通用)。
+
+## 上架收尾(Cloudflare Pages)
+
+`wrangler pages deploy dist --project-name hfpc-shooting3d`;收尾三件套=奧運頁入口卡
+(hfpc-olympics)→作品集 add-work(sports3d)→sites.json(運動3D,兩份)+Worker NAMES。
+psPing 已是雙平台版(只擋 localhost)。
