@@ -61,7 +61,8 @@ const game = new ArcheryGame({
   canvas: ui.canvas,
   touchRoot: ui.touchControls,
 });
-window.__archery3d = game; // dev hook:Playwright 凍結畫面/數值驗證用(比照 baseball3d)
+window.__shooting3d = game; window.__archery3d = game; // dev hook(新名+引擎舊名雙掛)
+window.__game = game; // /smoke3d 通用鉤子
 
 let selectedModeId = game.modeId;
 let selectedDifficulty = game.difficulty;
@@ -155,23 +156,23 @@ function impactCommentary(event) {
   if (event.miss) {
     return pick([
       { sub: "偏出靶外——脫靶了,調整呼吸再來。", say: "脫靶了,調整呼吸再來。" },
-      { sub: "這箭飄了……看看風旗,往反方向補償。", say: "可惜,偏了一點。" },
+      { sub: "這發飄了……屏息穩一點再擊發。", say: "可惜,偏了一點。" },
     ]);
   }
   if (event.isBull) {
     return pick([
-      { sub: "正中紅心!十環!", say: "十環!正中紅心!" },
-      { sub: "十環!這箭又穩又準,全場歡呼!", say: "好一箭正中靶心,太漂亮了!" },
+      { sub: "正中靶心!十環!", say: "十環!正中靶心!" },
+      { sub: "十環!這發又穩又準,全場屏息!", say: "好一發正中靶心,太漂亮了!" },
     ]);
   }
   if (event.isGold) {
     return pick([
-      { sub: `${event.ring} 環,命中金心區!`, say: "九環!命中金心!" },
-      { sub: `${event.ring} 環!離紅心只差一點點!`, say: "漂亮的一箭!" },
+      { sub: `${event.ring} 環,緊貼靶心!`, say: "九環!緊貼靶心!" },
+      { sub: `${event.ring} 環!離靶心只差一點點!`, say: "漂亮的一發!" },
     ]);
   }
   if (event.ring >= 7) {
-    return { sub: `${event.ring} 環,穩穩命中!`, say: "好箭!穩穩命中!" };
+    return { sub: `${event.ring} 環,穩穩命中!`, say: "好槍法!穩穩命中!" };
   }
   return { sub: `${event.ring} 環,上靶了——再往中心修正。`, say: "上靶了,再往中心修正。" };
 }
@@ -180,19 +181,24 @@ function handleGameEvent(event) {
   switch (event.type) {
     case "match-start": {
       audio.whistle();
-      audio.startCrowd(); // 觀眾環境音(07-11 鐵則)
       audio.vibrate(18);
       pushCommentary(
-        pick(["比賽開始!拉弓,瞄準,穩住呼吸!", "歡迎來到射箭場!比賽開始!"]),
+        pick(["比賽開始!舉槍,瞄準,屏住呼吸!", "歡迎來到室內靶場,比賽開始!"]),
       );
       break;
     }
     case "draw-start":
       break;
     case "release":
-      audio.swish();
-      audio.vibrate(14);
+      audio.thud(0.35); // 氣步槍輕脆擊發聲
+      audio.vibrate(10);
       break;
+    case "muzzle-safety": {
+      audio.rebound();
+      audio.vibrate([30, 30]);
+      pushCommentary("槍口不可對人!移開準星,只朝靶射擊。", "cool", "槍口不可對人,只朝靶射擊!");
+      break;
+    }
     case "impact": {
       if (event.miss) {
         audio.thud(0.5);
@@ -209,31 +215,29 @@ function handleGameEvent(event) {
       pushCommentary(line.sub, event.isGold ? "hot" : event.miss ? "cool" : "info", line.say);
       break;
     }
-    case "hit-crowd": {
-      audio.thud(0.8);
-      audio.whistle();
-      audio.vibrate([50, 40, 50]);
-      pushCommentary(
-        "哎呀!射到觀眾了——還好是玩具箭,快說對不起!",
-        "cool",
-        "哎呀!射到觀眾了,趕快說對不起!",
-      );
-      break;
-    }
     case "end-complete": {
       audio.buzzer();
-      pushCommentary(`第 ${event.endNumber} 局結束,本局 ${event.endScore} 分!`, "info", "本局結束!");
+      pushCommentary(`第 ${event.endNumber} 組結束,本組 ${event.endScore} 分!`, "info", "本組結束!");
       break;
     }
     case "match-end": {
       audio.horn();
       audio.crowdCheer(1);
       audio.vibrate([110, 50, 120]);
-      pushCommentary(
-        `比賽結束!總分 ${event.total},評等 ${event.grade}!`,
-        "hot",
-        "比賽結束!",
-      );
+      if (event.duel) {
+        pushCommentary(
+          event.winner === "平手" ? `平手!P1 ${event.p1} : P2 ${event.p2}` : `${event.winner} 獲勝!P1 ${event.p1} : P2 ${event.p2}`,
+          "hot",
+          "比賽結束!",
+        );
+      } else {
+        pushCommentary(
+          `比賽結束!總分 ${event.total},評等 ${event.grade}!`,
+          "hot",
+          "比賽結束!",
+        );
+      }
+      window.psPing?.("shooting3d-done", window.__psT0 ? Math.round((Date.now() - window.__psT0) / 1000) : 0);
       ui.saveStatus.textContent = hasSavedGame() ? "已有存檔" : "尚未存檔";
       break;
     }
@@ -248,9 +252,9 @@ game.onHudUpdate = (state) => {
   ui.totalScore.textContent = String(state.totalScore);
   ui.bullseyeCount.textContent = String(state.bullseyeCount);
   // 頂欄模式卡窄,放兩字短碼;完整名稱在側欄 modeLabel
-  ui.modeCode.textContent = ({ 練習場: "練習", 計分賽: "計分", 紅心挑戰: "紅心" })[state.modeLabel] || state.modeLabel;
+  ui.modeCode.textContent = ({ 練習場: "練習", 計分賽: "計分", 十環挑戰: "十環", "雙人同機(輪流)": "雙人" })[state.modeLabel] || state.modeLabel;
   ui.endLabel.textContent = `${state.endNumber}/${state.endCount}`;
-  ui.arrowLabel.textContent = `第 ${Math.min(state.arrowInEnd + 1, state.arrowsPerEnd)}/${state.arrowsPerEnd} 箭`;
+  ui.arrowLabel.textContent = `第 ${Math.min(state.arrowInEnd + 1, state.arrowsPerEnd)}/${state.arrowsPerEnd} 發`;
   ui.lastRingLabel.textContent =
     state.lastRing === null ? "—" : state.lastRing === 0 ? "脫靶" : `${state.lastRing} 環`;
   ui.phaseLabel.textContent = state.phaseLabel;
@@ -261,19 +265,19 @@ game.onHudUpdate = (state) => {
   ui.windLabel.textContent = state.windText;
   ui.endScoreLabel.textContent = String(state.endScore);
   ui.drawMeterText.textContent =
-    state.phaseLabel === "拉弓"
-      ? state.drawPower >= 1
-        ? "拉滿!放箭!"
-        : `${Math.round(state.drawPower * 100)}%`
-      : "按住拉弓";
+    state.phaseLabel === "屏息"
+      ? state.steadiness >= 0.8
+        ? "穩定窗!擊發!"
+        : `穩定 ${Math.round(state.steadiness * 100)}%`
+      : "按住屏息";
   ui.steadyValue.textContent = `${Math.round(state.steadiness * 100)}%`;
   setMeterFill(ui.drawMeterFill, state.drawPower);
-  { // 07-14 拍板:中下方大拉弓力道條
+  { // 中下方大穩定度條(屏息時顯示,滿=擊發時機)
     const bp = document.getElementById("bigPower"), bf = document.getElementById("bigPowerFill");
     if (bp) {
-      bp.hidden = state.phaseLabel !== "拉弓";
-      bf.style.transform = `scaleX(${Math.min(1, state.drawPower)})`;
-      bf.classList.toggle("full", state.drawPower >= 1);
+      bp.hidden = state.phaseLabel !== "屏息";
+      bf.style.transform = `scaleX(${Math.min(1, state.steadiness)})`;
+      bf.classList.toggle("full", state.steadiness >= 0.8);
     }
   }
   setMeterFill(ui.steadyFill, state.steadiness);
@@ -311,6 +315,8 @@ ui.audioSelect.addEventListener("change", (event) => {
 ui.startMatchButton.addEventListener("click", () => {
   unlockAudio();
   audio.uiTap();
+  window.psPing?.("shooting3d-start");
+  window.__psT0 = Date.now();
   game.applyPresentation({
     difficulty: selectedDifficulty,
     modeId: selectedModeId,

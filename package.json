@@ -1,5 +1,5 @@
 {
-  "name": "archery3d",
+  "name": "shooting3d",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "msedge-tts": "^2.0.7",
+    "playwright": "^1.61.1",
     "vite": "^7.1.3"
   }
 }

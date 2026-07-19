@@ -1,7 +1,7 @@
 {
-  "name": "3D 射箭",
-  "short_name": "3D射箭",
-  "description": "可在手機與 PC 遊玩的 3D 射箭遊戲——拉弓蓄力、準星晃動、順逆風、十環靶計分。",
+  "name": "3D 射擊(10m 氣步槍)",
+  "short_name": "3D射擊",
+  "description": "可在手機與 PC 遊玩的 3D 射擊遊戲——10m 氣步槍室內靶場,屏息穩定準星、穩定窗擊發、十環計分、雙人同機輪流賽。",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#09131d",

@@ -1,5 +1,5 @@
-const SETTINGS_KEY = "archery3d-settings-v1";
-const SAVE_KEY = "archery3d-save-v1";
+const SETTINGS_KEY = "shooting3d-settings-v1";
+const SAVE_KEY = "shooting3d-save-v1";
 
 const defaultSettings = {
   difficulty: "normal",

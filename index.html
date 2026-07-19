@@ -11,11 +11,12 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-    <title>Archery 3D 3D 射箭</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%AF%3C/text%3E%3C/svg%3E" />
+    <title>Shooting 3D 3D 射擊(10m 氣步槍)</title>
   </head>
   <body>
     <div class="app-shell">
-      <canvas id="gameCanvas" aria-label="3D 射箭遊戲畫面"></canvas>
+      <canvas id="gameCanvas" aria-label="3D 射擊遊戲畫面"></canvas>
 
       <div class="top-bar">
         <div class="score-card team-home">
@@ -28,18 +29,18 @@
             <strong id="modeCode">計分賽</strong>
           </div>
           <div class="clock-stack">
-            <span class="mini-label">局數 / 箭數</span>
+            <span class="mini-label">組數 / 發數</span>
             <strong id="endLabel">1/6</strong>
-            <span class="stack-subtext" id="arrowLabel">第 1 箭</span>
+            <span class="stack-subtext" id="arrowLabel">第 1 發</span>
           </div>
           <div class="clock-stack accent">
-            <span class="mini-label">上一箭</span>
+            <span class="mini-label">上一發</span>
             <strong id="lastRingLabel">—</strong>
             <span class="stack-subtext" id="phaseLabel">主選單</span>
           </div>
         </div>
         <div class="score-card team-away">
-          <span class="score-label">紅心數</span>
+          <span class="score-label">內圈數</span>
           <strong id="bullseyeCount">0</strong>
         </div>
       </div>
@@ -51,10 +52,10 @@
 
       <aside class="side-panel">
         <div class="panel-block hero-panel">
-          <p class="eyebrow">Archery 3D</p>
-          <h1>3D 射箭</h1>
+          <p class="eyebrow">Shooting 3D・10m 氣步槍</p>
+          <h1>3D 射擊</h1>
           <p class="panel-copy">
-            按住拉弓、移動瞄準、放開放箭。拉滿越久準星越晃——抓準風向,一箭入紅心!
+            移動滑鼠瞄準、按住屏息穩定準星、在「穩定窗」放開擊發。室內無風,挑戰全在呼吸節奏——屏太久會缺氧回晃,正中十環靶心!
           </p>
         </div>
 
@@ -69,14 +70,14 @@
           </div>
           <div>
             <span class="mini-label">靶距</span>
-            <strong id="distanceLabel">22 m</strong>
+            <strong id="distanceLabel">10 m</strong>
           </div>
           <div>
-            <span class="mini-label">風向</span>
-            <strong id="windLabel">幾乎無風</strong>
+            <span class="mini-label">屏息提示</span>
+            <strong id="windLabel">按住屏息穩定準星</strong>
           </div>
           <div>
-            <span class="mini-label">本局得分</span>
+            <span class="mini-label">本組得分</span>
             <strong id="endScoreLabel">0</strong>
           </div>
           <div>
@@ -91,15 +92,15 @@
 
         <div class="panel-block meter-block">
           <div class="meter-copy">
-            <span class="mini-label">拉弓力道</span>
-            <strong id="drawMeterText">按住拉弓</strong>
+            <span class="mini-label">穩定度</span>
+            <strong id="drawMeterText">按住屏息</strong>
           </div>
           <div class="meter-track">
             <div id="drawMeterFill" class="meter-fill shot"></div>
           </div>
 
           <div class="meter-copy stamina-copy">
-            <span class="mini-label">穩定度(越低越晃)</span>
+            <span class="mini-label">穩定度(越高越準)</span>
             <strong id="steadyValue">100%</strong>
           </div>
           <div class="meter-track stamina">
@@ -124,11 +125,12 @@
 
         <div class="panel-block instructions">
           <p class="mini-label">操作</p>
-          <p>拉弓: 按住畫面或空白鍵</p>
           <p>瞄準: 移動滑鼠 / 方向鍵微調</p>
-          <p>放箭: 放開</p>
-          <p>視角切換: V</p>
-          <p>暫停: Esc / P</p>
+          <p>屏息: 按住畫面或空白鍵(準星先收斂變穩)</p>
+          <p>擊發: 在「穩定窗」放開(屏太久會缺氧回晃)</p>
+          <p>安全: 準星掃到人=禁止擊發(槍口紀律)</p>
+          <p>雙人同機: 兩位輪流用同一組鍵,各 10 發比總分</p>
+          <p>視角切換: V｜暫停: Esc / P</p>
         </div>
       </aside>
 
@@ -140,7 +142,7 @@
           <button data-action="down" aria-label="瞄準下">▼</button>
         </div>
         <div class="action-pad">
-          <button data-action="shoot" class="shoot">拉弓</button>
+          <button data-action="shoot" class="shoot">屏息/擊發</button>
           <button data-action="camera">視角</button>
         </div>
       </div>
@@ -162,10 +164,10 @@
         <div class="home-backdrop"></div>
         <div class="home-content">
           <div class="home-hero">
-            <p class="eyebrow">Archery 3D</p>
-            <h2>拉弓、屏息、放箭</h2>
+            <p class="eyebrow">Shooting 3D・10m 氣步槍</p>
+            <h2>瞄準、屏息、擊發</h2>
             <p>
-              選好模式與難度就上場。準星會隨拉滿時間越晃越大,還有順逆風——往反方向瞄準補償,挑戰十環紅心!
+              選好模式與難度就上場。按住屏息讓準星收斂,在「穩定窗」擊發最準;屏太久會缺氧回晃。室內無風,挑戰全在呼吸——正中十環靶心!
             </p>
           </div>
 
@@ -175,15 +177,19 @@
               <div class="mode-card-grid" id="modeCardGrid">
                 <button class="mode-card" data-mode="practice">
                   <strong>練習場</strong>
-                  <span>無限箭數,自由練手感</span>
+                  <span>無限發數,自由練屏息節奏</span>
                 </button>
                 <button class="mode-card" data-mode="standard">
                   <strong>計分賽</strong>
-                  <span>6 局 × 3 箭,滿分 180</span>
+                  <span>6 組 × 3 發,滿分 180</span>
                 </button>
                 <button class="mode-card" data-mode="bullseye">
-                  <strong>紅心挑戰</strong>
-                  <span>10 箭,盡量射進 9、10 環</span>
+                  <strong>十環挑戰</strong>
+                  <span>10 發,盡量射進 9、10 環</span>
+                </button>
+                <button class="mode-card" data-mode="duel2p">
+                  <strong>雙人同機</strong>
+                  <span>兩人輪流各 10 發,比總分(P1 藍 vs P2 紅)</span>
                 </button>
               </div>
               <p id="modeDescription" class="mode-description"></p>
@@ -227,14 +233,22 @@
       </div>
     </div>
 
-      <div class="power-panel-big" id="bigPower" hidden><span>拉弓</span><div class="big-track"><div class="big-fill" id="bigPowerFill"></div></div></div>
+      <div class="power-panel-big" id="bigPower" hidden><span id="bigPowerLabel">屏息穩定</span><div class="big-track"><div class="big-fill" id="bigPowerFill"></div></div></div>
     <script type="module" src="/src/main.js"></script>
     <script>
+    // play-stats 匿名計數(雙平台通用:只擋本機;netlify/pages.dev/自訂網域都計數)。零個資。
+    window.psPing = function (key, t) {
+      try {
+        if (['localhost', '127.0.0.1'].includes(location.hostname)) return;
+        var u = 'https://hfpc-play-stats.summer09201017.workers.dev/api/ping?g=' + key + (t ? '&t=' + t : '');
+        if (navigator.sendBeacon) navigator.sendBeacon(u); else fetch(u, { mode: 'no-cors' });
+      } catch (_) {}
+    };
     try {
-      if (location.hostname.endsWith('netlify.app')) {
-        navigator.sendBeacon?.('https://hfpc-play-stats.summer09201017.workers.dev/api/ping?g=archery3d');
-      }
-    } catch (_) {}
+      var psK = 'ps-last-shooting3d';
+      var psLast = parseInt(localStorage.getItem(psK) || '0', 10);
+      if (Date.now() - psLast > 600000) { localStorage.setItem(psK, String(Date.now())); window.psPing('shooting3d'); }
+    } catch (_) { window.psPing('shooting3d'); }
     </script>
   </body>
 </html>

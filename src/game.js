@@ -9,14 +9,15 @@ import { loadSettings, saveSettings, loadSavedGame, saveGameState } from "./stor
 // 再把箭「演」到那個點——畫面說不通的分數=bug。
 
 // ---------- 可調量值(開場 UI 可選,預設只是預設) ----------
-// 量值經 2026-07-12 自我對戰校正(80 箭×2 玩家模型:生手 σ0.22 不補風/熟練 σ0.09 補風 55%):
-// 目標梯度=生手在 kids 有成就感(平均 8 環+),熟練在 hard 有張力(平均 ~6.5、會脫靶)。
+// 射擊(10m 氣步槍,A1):室內無風,距離恆 10m(ISSF)——挑戰全在「呼吸」:
+// 按住=屏息,晃動先收斂(steadyTime)→穩定窗(sweetTime)→屏太久缺氧晃動回升(swayGrow);
+// heart=心跳脈動幅度(高難度連心跳都看得見)。
 export const DIFFICULTY_PRESETS = {
-  kids: { distance: 13, swayBase: 0.012, swayGrow: 0.1, wind: 0.015, drawDuration: 0.5, aimAssist: 0.68 },
-  child: { distance: 15, swayBase: 0.03, swayGrow: 0.25, wind: 0.06, drawDuration: 0.58, aimAssist: 0.42 },
-  easy: { distance: 18, swayBase: 0.07, swayGrow: 0.45, wind: 0.14, drawDuration: 0.64, aimAssist: 0.2 },
-  normal: { distance: 22, swayBase: 0.12, swayGrow: 0.8, wind: 0.26, drawDuration: 0.7, aimAssist: 0.06 },
-  hard: { distance: 30, swayBase: 0.2, swayGrow: 1.15, wind: 0.42, drawDuration: 0.78, aimAssist: 0 },
+  kids: { distance: 10, swayBase: 0.012, swayGrow: 0.25, steadyTime: 0.5, sweetTime: 2.4, heart: 0, aimAssist: 0.68 },
+  child: { distance: 10, swayBase: 0.03, swayGrow: 0.5, steadyTime: 0.55, sweetTime: 1.9, heart: 0.05, aimAssist: 0.42 },
+  easy: { distance: 10, swayBase: 0.065, swayGrow: 0.9, steadyTime: 0.6, sweetTime: 1.5, heart: 0.12, aimAssist: 0.2 },
+  normal: { distance: 10, swayBase: 0.11, swayGrow: 1.4, steadyTime: 0.65, sweetTime: 1.15, heart: 0.2, aimAssist: 0.06 },
+  hard: { distance: 10, swayBase: 0.17, swayGrow: 2.0, steadyTime: 0.7, sweetTime: 0.9, heart: 0.3, aimAssist: 0 },
 };
 
 export const DIFFICULTY_LABELS = {
@@ -33,22 +34,31 @@ export const GAME_MODES = {
     arrowsPerEnd: 3,
     endCount: 999,
     endless: true,
-    description: "無限箭數,自由熟悉拉弓、抓風向、屏息時機。",
+    description: "無限發數,自由熟悉屏息節奏與穩定窗。",
     goal: "純練手感,不計勝負",
   },
   standard: {
     label: "計分賽",
     arrowsPerEnd: 3,
     endCount: 6,
-    description: "6 局 × 3 箭,滿分 180 分。",
+    description: "6 組 × 3 發,滿分 180 分。",
     goal: "總分越高越好",
   },
   bullseye: {
-    label: "紅心挑戰",
+    label: "十環挑戰",
     arrowsPerEnd: 1,
     endCount: 10,
-    description: "10 箭,盡量射進紅心(9、10 環)。",
-    goal: "紅心數越多越好",
+    description: "10 發,盡量射進內圈(9、10 環)。",
+    goal: "內圈數越多越好",
+  },
+  // 同機雙人輪流制(duel-2p-kit §7B):共用同一組鍵/滑鼠,輪到誰誰射
+  duel2p: {
+    label: "雙人同機(輪流)",
+    arrowsPerEnd: 1,
+    endCount: 20,
+    duel: true,
+    description: "兩位選手輪流射擊,各 10 發——總分高的獲勝!",
+    goal: "P1(藍) vs P2(紅)",
   },
 };
 
@@ -57,11 +67,11 @@ export function getModeConfig(modeId) {
 }
 
 // ---------- 靶 / 場地常數 ----------
-const TARGET_R = 0.72; // 靶面半徑(世界單位)
-const TARGET_CENTER_Y = 1.38; // 紅心高度(約眼平)
-const BOW_TIP = new THREE.Vector3(-0.38, 1.6, 0.58); // 放箭起點=左手持弓處(過肩視角射手偏左,弓在其左側可見)
-// 靶環顏色(World Archery 由外到內:白/黑/藍/紅/金),每色=2 環寬 0.2R
-const RING_COLORS = [0xf3f4f6, 0x25272b, 0x3f9be0, 0xe8443c, 0xf6d743];
+const TARGET_R = 0.3; // 靶面半徑(世界單位)——10m 氣步槍靶比射箭靶小得多
+const TARGET_CENTER_Y = 1.38; // 靶心高度(約眼平)
+const BOW_TIP = new THREE.Vector3(-0.16, 1.52, 0.55); // 槍口起點(過肩視角射手偏左,槍在其左側可見)
+// 氣步槍靶環(由外到內:白紙+黑色瞄準區;內圈 9/10 環在黑區中心)
+const RING_COLORS = [0xf3f4f6, 0xe7e7e2, 0x25272b, 0x1b1d20, 0xf6d743];
 
 // ---------- 小工具 ----------
 function clamp(value, min, max) {
@@ -290,56 +300,67 @@ function makePerson({ shirt = 0x2f6f4e, pants = 0x2a3550, skin = 0xf3cca6, hair 
   return { group, rig, head, waist, leftArm, rightArm, leftLeg, rightLeg };
 }
 
-// ---------- 弓 + 箭 ----------
-function makeBow() {
+// ---------- 氣步槍 + 彈丸 ----------
+function makeRifle() {
   const group = new THREE.Group();
-  const woodMat = new THREE.MeshStandardMaterial({ color: 0x8a5a2b, roughness: 0.5, metalness: 0.1 });
-  // 弓身:半圓弧(繞 z 開口朝向 -x,握把在中央)
-  const limb = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.028, 8, 20, Math.PI * 1.1), woodMat);
-  limb.rotation.z = Math.PI / 2 - 0.15;
-  group.add(limb);
-  const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.22, 10), woodMat);
-  group.add(grip);
-  // 弓弦:三點折線(上弦耳 → 搭箭點 → 下弦耳),搭箭點會隨拉弓後移
-  const stringMat = new THREE.LineBasicMaterial({ color: 0xf4f0e4 });
-  const stringGeo = new THREE.BufferGeometry().setFromPoints([
-    new THREE.Vector3(0, 0.4, 0),
-    new THREE.Vector3(0, 0, 0.02),
-    new THREE.Vector3(0, -0.4, 0),
-  ]);
-  const string = new THREE.Line(stringGeo, stringMat);
-  group.add(string);
-  return { group, string, stringGeo };
+  const woodMat = new THREE.MeshStandardMaterial({ color: 0x7a4f28, roughness: 0.55 });
+  const metalMat = new THREE.MeshStandardMaterial({ color: 0x3a3f46, metalness: 0.6, roughness: 0.35 });
+  // 槍托(後)
+  const stock = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.13, 0.34), woodMat);
+  stock.position.set(0, -0.04, -0.3);
+  group.add(stock);
+  // 機匣+護木(中)
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.09, 0.42), woodMat);
+  body.position.set(0, 0, -0.02);
+  group.add(body);
+  // 槍管(前,沿 +z)
+  const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.017, 0.017, 0.62, 10), metalMat);
+  barrel.rotation.x = Math.PI / 2;
+  barrel.position.set(0, 0.035, 0.42);
+  group.add(barrel);
+  // 覘孔照門(後)+準星護圈(前)——10m 氣步槍的招牌
+  const diopter = new THREE.Mesh(new THREE.TorusGeometry(0.028, 0.008, 8, 16), metalMat);
+  diopter.position.set(0, 0.085, -0.12);
+  group.add(diopter);
+  const frontSight = new THREE.Mesh(new THREE.TorusGeometry(0.02, 0.006, 8, 14), metalMat);
+  frontSight.position.set(0, 0.06, 0.7);
+  group.add(frontSight);
+  return { group };
 }
 
-function makeArrow(scale = 1) {
+// 彈丸:小亮點+短曳光(直線飛行,無拋物線——氣步槍 10m 幾乎瞬達)
+function makePellet() {
   const group = new THREE.Group();
-  const shaftMat = new THREE.MeshStandardMaterial({ color: 0xe8ddc4, roughness: 0.6 });
-  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.92, 8), shaftMat);
-  shaft.rotation.x = Math.PI / 2; // 沿 +z 躺平
-  shaft.position.z = 0;
-  group.add(shaft);
-  const tip = new THREE.Mesh(
-    new THREE.ConeGeometry(0.022, 0.09, 8),
-    new THREE.MeshStandardMaterial({ color: 0x9aa3ad, metalness: 0.5, roughness: 0.4 }),
+  const pellet = new THREE.Mesh(
+    new THREE.SphereGeometry(0.016, 8, 8),
+    new THREE.MeshBasicMaterial({ color: 0xfff2b0 }),
   );
-  tip.rotation.x = Math.PI / 2;
-  tip.position.z = 0.5;
-  group.add(tip);
-  const fletchMat = new THREE.MeshStandardMaterial({ color: 0xd8433c, roughness: 0.7, side: THREE.DoubleSide });
-  for (let i = 0; i < 3; i += 1) {
-    const fletch = new THREE.Mesh(new THREE.PlaneGeometry(0.11, 0.07), fletchMat);
-    fletch.position.z = -0.4;
-    fletch.rotation.z = (i / 3) * Math.PI * 2;
-    fletch.rotation.x = Math.PI / 2;
-    const holder = new THREE.Group();
-    holder.rotation.z = (i / 3) * Math.PI * 2;
-    fletch.rotation.z = 0;
-    fletch.position.set(0, 0.05, -0.4);
-    holder.add(fletch);
-    group.add(holder);
-  }
-  group.scale.setScalar(scale);
+  group.add(pellet);
+  const tracer = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.006, 0.006, 0.5, 6),
+    new THREE.MeshBasicMaterial({ color: 0xffe14d, transparent: true, opacity: 0.55 }),
+  );
+  tracer.rotation.x = Math.PI / 2;
+  tracer.position.z = -0.26;
+  group.add(tracer);
+  return group;
+}
+
+// 彈孔:插在靶上的小黑點+白邊(取代箭桿)
+function makeHole() {
+  const group = new THREE.Group();
+  const rim = new THREE.Mesh(
+    new THREE.CircleGeometry(0.02, 12),
+    new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide }),
+  );
+  group.add(rim);
+  const hole = new THREE.Mesh(
+    new THREE.CircleGeometry(0.013, 12),
+    new THREE.MeshBasicMaterial({ color: 0x14151a, side: THREE.DoubleSide }),
+  );
+  hole.position.z = -0.001; // 面向射手(-z)那側疊在白邊前
+  group.add(hole);
+  group.rotation.y = Math.PI; // 正面朝射手
   return group;
 }
 
@@ -366,20 +387,20 @@ export class ArcheryGame {
     this.cameraView = 0; // 0 射手後方(瞄準,鎖) 1 靶面特寫 2 高空俯瞰 3 側面轉播
     this.autoSaveTimer = 0;
 
-    // 每箭狀態
+    // 每發狀態(drawT=屏息秒數;power 保留欄位=屏息品質,給 HUD 條用)
     this.drawT = 0;
     this.holdAtFull = 0;
     this.power = 0;
+    this.recoilT = 9; // 擊發後座演出計時
     this.swayT = randomBetween(0, 10);
     this.aim = new THREE.Vector2(0, TARGET_CENTER_Y); // 瞄準點(靶面世界座標 x,y)
     this.pointerNDC = null; // 有滑鼠/觸控移動才更新
     this.reticleOffset = new THREE.Vector2(); // 當前晃動+偏移(顯示用)
-    this.wind = new THREE.Vector2(); // 未補償時的漂移量(世界單位)
+    this.wind = new THREE.Vector2(); // 室內無風(恆 0;保留欄位相容 HUD)
     this.arrowFlight = null; // {mesh, from, to, t, dur}
     this.scoreTimer = 0;
     this.betweenTimer = 0;
-    this.crowdAim = null; // 指到觀眾時={person, point}(07-12 拍板:可以射觀眾——玩具箭喜劇橋段)
-    this.crowdReactions = []; // 被射中的觀眾暈倒/爬起動畫
+    this.crowdAim = null; // 指到觀眾時={person, point}——★槍口紀律:指到人=禁擊發+安全提醒(不是玩具箭橋段)
 
     // 比賽計分
     this.totalScore = 0;
@@ -390,6 +411,10 @@ export class ArcheryGame {
     this.bullseyeCount = 0;
     this.lastRing = null;
     this.plantedArrows = [];
+    // 雙人同機輪流(duel-2p-kit §7B):共用滑鼠/按鍵,輪到誰誰射
+    this.turnSide = "p1";
+    this.duelScore = { p1: 0, p2: 0 };
+    this.duelShots = { p1: 0, p2: 0 };
 
     this.overlay = { visible: false, eyebrow: "", title: "", text: "", canResume: false };
 
@@ -426,95 +451,93 @@ export class ArcheryGame {
     if (this.onEvent) this.onEvent({ type, ...payload });
   }
 
-  // ---------- 場景 ----------
+  // ---------- 場景(室內 10m 氣步槍靶場) ----------
   setupScene() {
-    const sun = new THREE.HemisphereLight(0xffffff, 0x557040, 1.35);
+    const sun = new THREE.HemisphereLight(0xffffff, 0x3a3f4a, 1.15);
     this.scene.add(sun);
-    const key = new THREE.DirectionalLight(0xfff2d4, 2.0);
-    key.position.set(6, 16, -6);
+    const key = new THREE.DirectionalLight(0xffffff, 1.6);
+    key.position.set(4, 14, -4);
     this.scene.add(key);
-    const rim = new THREE.DirectionalLight(0x9ccbff, 0.7);
-    rim.position.set(-8, 10, 8);
+    const rim = new THREE.DirectionalLight(0xbcd0ff, 0.6);
+    rim.position.set(-6, 8, 10);
     this.scene.add(rim);
+    // 靶端天花射燈(照亮遠處靶紙)
+    const targetLamp = new THREE.PointLight(0xffffff, 12, 8);
+    targetLamp.position.set(0, 3.2, this.distance || 10);
+    this.scene.add(targetLamp);
+    this._targetLamp = targetLamp;
 
-    // 草地跑道
-    const grass = new THREE.Mesh(
-      new THREE.PlaneGeometry(80, 120),
-      new THREE.MeshStandardMaterial({ color: 0x4f8a44, roughness: 1 }),
+    // 室內地板(膠地)
+    const floor = new THREE.Mesh(
+      new THREE.PlaneGeometry(24, 40),
+      new THREE.MeshStandardMaterial({ color: 0x3b4048, roughness: 0.95 }),
     );
-    grass.rotation.x = -Math.PI / 2;
-    grass.position.z = 30;
-    this.scene.add(grass);
-    // 射道(淺色帶)
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.z = 14;
+    this.scene.add(floor);
+    // 射道墊(藍色一長條)
     const lane = new THREE.Mesh(
-      new THREE.PlaneGeometry(3.2, 120),
-      new THREE.MeshStandardMaterial({ color: 0x6ba85c, roughness: 1 }),
+      new THREE.PlaneGeometry(1.6, 40),
+      new THREE.MeshStandardMaterial({ color: 0x2f5c8a, roughness: 0.9 }),
     );
     lane.rotation.x = -Math.PI / 2;
-    lane.position.set(0, 0.01, 30);
+    lane.position.set(0, 0.01, 14);
     this.scene.add(lane);
-    // 射擊線
+    // 射擊線(黃)
     const line = new THREE.Mesh(
-      new THREE.PlaneGeometry(3.4, 0.14),
-      new THREE.MeshBasicMaterial({ color: 0xf5f5f5 }),
+      new THREE.PlaneGeometry(2.6, 0.1),
+      new THREE.MeshBasicMaterial({ color: 0xf6d743 }),
     );
     line.rotation.x = -Math.PI / 2;
     line.position.set(0, 0.02, 0.4);
     this.scene.add(line);
+    // 後牆+兩側牆(室內感,深色吸音牆)
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0x262a31, roughness: 1 });
+    const backWall = new THREE.Mesh(new THREE.PlaneGeometry(24, 8), wallMat);
+    backWall.position.set(0, 4, -4);
+    this.scene.add(backWall);
+    for (const sx of [-1, 1]) {
+      const sideWall = new THREE.Mesh(new THREE.PlaneGeometry(40, 8), wallMat);
+      sideWall.rotation.y = -sx * Math.PI / 2;
+      sideWall.position.set(sx * 5, 4, 16);
+      this.scene.add(sideWall);
+    }
+    // 靶後擋彈牆(靶紙掛在上面)
+    this.backstop = new THREE.Mesh(
+      new THREE.BoxGeometry(6, 6, 0.3),
+      new THREE.MeshStandardMaterial({ color: 0x4a5058, roughness: 1 }),
+    );
+    this.scene.add(this.backstop);
 
-    // 射手(手繪向量人,持弓)
-    this.archer = makePerson({ shirt: 0x2f6f4e, pants: 0x38424f, scale: 1 });
+    // 射手(手繪向量人,站姿持槍)
+    this.archer = makePerson({ shirt: 0x8a5a2b, pants: 0x38424f, scale: 1 });
     this.archer.group.position.set(0, 0, 0);
     this.scene.add(this.archer.group);
-    // 左臂前伸持弓(肘幾乎打直)、右臂搭弦(上臂水平朝前;draw 時前臂沿箭線往「後」折=真實開弓)
-    this.archer.leftArm.pivot.rotation.x = -Math.PI / 2;
-    this.archer.leftArm.joint.rotation.x = -0.08;
-    this.archer.rightArm.pivot.rotation.x = -Math.PI / 2 + 0.08;
-    this.archer.rightArm.joint.rotation.x = -0.7;
+    // 站姿舉槍:左手托護木前伸、右手握把貼臉(覘孔瞄準)
+    this.archer.leftArm.pivot.rotation.x = -Math.PI / 2 + 0.15;
+    this.archer.leftArm.joint.rotation.x = -0.2;
+    this.archer.rightArm.pivot.rotation.x = -Math.PI / 2 + 0.05;
+    this.archer.rightArm.joint.rotation.x = -0.95;
 
-    this.bow = makeBow();
-    this.bow.group.position.copy(BOW_TIP);
-    this.scene.add(this.bow.group);
+    this.rifle = makeRifle();
+    this.rifle.group.position.copy(BOW_TIP);
+    this.scene.add(this.rifle.group);
 
-    // 搭在弦上的箭(未放時顯示)
-    this.nockedArrow = makeArrow(1);
-    this.scene.add(this.nockedArrow);
-
-    // 準星
+    // 準星(覘孔式:細環)
     const retMat = new THREE.MeshBasicMaterial({ color: 0xffe14d, transparent: true, opacity: 0.9, side: THREE.DoubleSide });
     this.reticle = new THREE.Group();
-    const ring = new THREE.Mesh(new THREE.RingGeometry(0.05, 0.065, 24), retMat);
+    const ring = new THREE.Mesh(new THREE.RingGeometry(0.035, 0.045, 28), retMat);
     this.reticle.add(ring);
-    for (let i = 0; i < 4; i += 1) {
-      const tick = new THREE.Mesh(new THREE.PlaneGeometry(0.02, 0.05), retMat);
-      tick.position.set(Math.cos((i * Math.PI) / 2) * 0.1, Math.sin((i * Math.PI) / 2) * 0.1, 0);
-      tick.rotation.z = (i * Math.PI) / 2;
-      this.reticle.add(tick);
-    }
+    const dot = new THREE.Mesh(new THREE.CircleGeometry(0.006, 10), retMat);
+    this.reticle.add(dot);
     this.scene.add(this.reticle);
-
-    // 風旗(靶邊)
-    this.flag = new THREE.Group();
-    const pole = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.03, 0.03, 3.2, 8),
-      new THREE.MeshStandardMaterial({ color: 0xcccccc }),
-    );
-    pole.position.y = 1.6;
-    this.flag.add(pole);
-    this.flagCloth = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.9, 0.5),
-      new THREE.MeshStandardMaterial({ color: 0xff7043, roughness: 0.8, side: THREE.DoubleSide }),
-    );
-    this.flagCloth.position.set(0.45, 3.0, 0);
-    this.flag.add(this.flagCloth);
-    this.scene.add(this.flag);
 
     this.buildTarget();
     this.buildCrowd();
 
-    // 最新一箭標記(07-12 拍板):發光圈套在剛射中的箭上,update 內脈動——玩家一眼看出剛射到哪
+    // 最新一發標記(發光圈套在剛射中的彈孔上,update 內脈動——一眼看出剛射到哪)
     this.latestMarker = new THREE.Mesh(
-      new THREE.TorusGeometry(0.09, 0.014, 8, 24),
+      new THREE.TorusGeometry(0.05, 0.008, 8, 24),
       new THREE.MeshBasicMaterial({ color: 0xffe14d, transparent: true, opacity: 0.95 }),
     );
     this.latestMarker.visible = false;
@@ -523,72 +546,77 @@ export class ArcheryGame {
 
   buildTarget() {
     if (this.targetGroup) this.scene.remove(this.targetGroup);
+    if (this.plantedArrows) for (const h of this.plantedArrows) this.scene.remove(h); // 清舊彈孔
+    if (this.latestMarker) this.latestMarker.visible = false;
     const group = new THREE.Group();
-    // 背板
-    const backing = new THREE.Mesh(
-      new THREE.BoxGeometry(TARGET_R * 2.35, TARGET_R * 2.35, 0.08),
-      new THREE.MeshStandardMaterial({ color: 0xe9e2cf, roughness: 0.9 }),
+    // 白色靶紙(方形卡紙)
+    const paper = new THREE.Mesh(
+      new THREE.PlaneGeometry(TARGET_R * 2.8, TARGET_R * 2.8),
+      new THREE.MeshStandardMaterial({ color: 0xf6f4ee, roughness: 0.95, side: THREE.DoubleSide }),
     );
-    group.add(backing);
-    // 五色環(外→內):白/黑/藍/紅/金,每色寬 0.2R
-    for (let i = 0; i < 5; i += 1) {
-      const outer = TARGET_R * (1 - i * 0.2);
-      const inner = TARGET_R * (1 - (i + 1) * 0.2);
-      const geo = i === 4
-        ? new THREE.CircleGeometry(outer, 40)
-        : new THREE.RingGeometry(Math.max(inner, 0.001), outer, 44);
-      const ring = new THREE.Mesh(
-        geo,
-        new THREE.MeshStandardMaterial({ color: RING_COLORS[i], roughness: 0.75, side: THREE.DoubleSide }),
+    paper.position.z = 0.04;
+    group.add(paper);
+    // 氣步槍靶:黑色瞄準區(covers 4~10 環的黑圈)+內圈細白線分環+紅點靶心
+    // 計分是連續半徑(見 resolveImpact),這裡只是「看得懂」的視覺分環
+    const bull = new THREE.Mesh(
+      new THREE.CircleGeometry(TARGET_R * 0.62, 40),
+      new THREE.MeshStandardMaterial({ color: 0x1b1d20, roughness: 0.8, side: THREE.DoubleSide }),
+    );
+    bull.position.z = 0.042;
+    group.add(bull);
+    // 分環白線(2~9 環邊界):在黑圈上畫細白環
+    for (let i = 1; i <= 8; i += 1) {
+      const rr = TARGET_R * (i / 10);
+      const lineC = new THREE.Mesh(
+        new THREE.RingGeometry(rr - 0.0015, rr + 0.0015, 48),
+        new THREE.MeshBasicMaterial({ color: rr <= TARGET_R * 0.62 ? 0xf6f4ee : 0x1b1d20, side: THREE.DoubleSide }),
       );
-      // group 之後會 rotation.y=PI 朝向射手:局部 +z 才是「面向射手」那側,環要放背板前(+0.041)
-      ring.position.z = 0.041 + i * 0.001; // 內圈略微前疊避免 z-fighting
-      ring.rotation.y = Math.PI; // CircleGeometry 正面朝局部 +z,翻半圈讓正面隨 group 朝射手
-      group.add(ring);
+      lineC.position.z = 0.043 + i * 0.0005;
+      group.add(lineC);
     }
-    // 立架(從靶底接到地面)
-    const standH = TARGET_CENTER_Y - TARGET_R;
-    const stand = new THREE.Mesh(
-      new THREE.BoxGeometry(0.1, standH, 0.1),
-      new THREE.MeshStandardMaterial({ color: 0x6b4a2a }),
+    // 紅點靶心(10 環,看得見的目標)
+    const center = new THREE.Mesh(
+      new THREE.CircleGeometry(TARGET_R * 0.05, 20),
+      new THREE.MeshBasicMaterial({ color: 0xe8443c, side: THREE.DoubleSide }),
     );
-    stand.position.y = -(TARGET_R + standH / 2);
-    group.add(stand);
+    center.position.z = 0.05;
+    group.add(center);
 
-    group.rotation.y = Math.PI; // 靶面朝向射手(-z)
     this.targetGroup = group;
-    // ★判定=畫面:靶「畫面中心」必須=計分中心 TARGET_CENTER_Y(修 07-12 bug:視覺靶被抬高 0.65,
-    // 害「射中下方黑環卻算高分、黃心算低分」——計分沒錯,是畫面騙人)
-    if (this.distance) group.position.set(0, TARGET_CENTER_Y, this.distance);
+    // ★判定=畫面:靶「畫面中心」=計分中心 TARGET_CENTER_Y
+    if (this.distance) group.position.set(0, TARGET_CENTER_Y, this.distance - 0.15); // 貼在擋彈牆前
     this.scene.add(group);
     this.plantedArrows = [];
   }
 
   buildCrowd() {
-    // 少量有臉觀眾在射道兩側(臉朝射道);半徑 > 相機距離,避免擋鏡頭
+    // 相鄰靶位的其他選手(室內靶場氛圍;★槍口紀律:準星掃到人=禁止擊發+安全提醒,不是喜劇橋段)
     this.crowd = new THREE.Group();
-    const shirts = [0xd98a3d, 0x3d78d9, 0xc94f8f, 0x4fae6a, 0xb0552f];
-    for (const side of [-1, 1]) {
-      for (let i = 0; i < 4; i += 1) {
-        const p = makePerson({
-          shirt: shirts[(i + (side > 0 ? 2 : 0)) % shirts.length],
-          pants: 0x2c3340,
-          hair: HAIR_COLORS[(i * 2 + (side > 0 ? 3 : 0)) % HAIR_COLORS.length],
-          gender: (i + (side > 0 ? 1 : 0)) % 2 === 0 ? "m" : "f", // 一半男生一半女生(07-12 拍板)
-          scale: 0.9,
-        });
-        p.group.position.set(side * 4.2, 0, 1.5 + i * 2.1);
-        p.group.rotation.y = side === -1 ? Math.PI / 2 : -Math.PI / 2; // 臉朝射道
-        this.crowd.add(p.group);
-      }
+    const shirts = [0x3d78d9, 0x4fae6a, 0xc94f8f];
+    for (const [i, sx] of [[0, -1], [1, 1], [2, -1]].entries()) {
+      const p = makePerson({
+        shirt: shirts[i % shirts.length],
+        pants: 0x2c3340,
+        hair: HAIR_COLORS[(i * 2 + 1) % HAIR_COLORS.length],
+        gender: i % 2 === 0 ? "m" : "f",
+        scale: 1,
+      });
+      p.group.position.set(sx * 1.7 * (1 + Math.floor(i / 2)), 0, 0.1);
+      p.group.rotation.y = 0; // 與玩家同向朝靶(相鄰射位)
+      // 相鄰選手也舉槍朝前(靜態姿勢)
+      p.leftArm.pivot.rotation.x = -Math.PI / 2 + 0.15;
+      p.rightArm.pivot.rotation.x = -Math.PI / 2 + 0.05;
+      p.rightArm.joint.rotation.x = -0.95;
+      this.crowd.add(p.group);
     }
     this.scene.add(this.crowd);
   }
 
   setDistance(dist) {
     this.distance = dist;
-    if (this.targetGroup) this.targetGroup.position.set(0, TARGET_CENTER_Y, dist);
-    if (this.flag) this.flag.position.set(-(TARGET_R + 1.4), 0, dist - 0.5);
+    if (this.targetGroup) this.targetGroup.position.set(0, TARGET_CENTER_Y, dist - 0.15);
+    if (this.backstop) this.backstop.position.set(0, TARGET_CENTER_Y - 0.2, dist + 0.05);
+    if (this._targetLamp) this._targetLamp.position.set(0, 3.2, dist);
     this._targetPlane.constant = dist; // plane normal (0,0,-1): -z + d = 0 → z = d
   }
 
@@ -649,6 +677,9 @@ export class ArcheryGame {
     this.arrowsShotTotal = 0;
     this.bullseyeCount = 0;
     this.lastRing = null;
+    this.turnSide = "p1";
+    this.duelScore = { p1: 0, p2: 0 };
+    this.duelShots = { p1: 0, p2: 0 };
     this.setDistance(DIFFICULTY_PRESETS[this.difficulty].distance);
     this.buildTarget();
     this.emitEvent("match-start", { mode: this.mode.label });
@@ -662,110 +693,63 @@ export class ArcheryGame {
     this.power = 0;
     this.crowdAim = null;
     this.aim.set(0, TARGET_CENTER_Y);
-    this.rollWind();
-    this.message = "按住拉弓,移動瞄準,放開放箭。";
+    this.wind.set(0, 0); // 室內無風
+    const who = this.mode.duel ? (this.turnSide === "p1" ? "P1(藍)" : "P2(紅)") + " 的回合——" : "";
+    this.message = `${who}移動滑鼠瞄準,按住屏息穩定,放開擊發。`;
     this.pushHud();
   }
 
-  rollWind() {
-    const w = DIFFICULTY_PRESETS[this.difficulty].wind * TARGET_R;
-    this.wind.set(randomSigned(w), randomSigned(w * 0.55));
-  }
+  rollWind() { this.wind.set(0, 0); } // 室內無風(保留呼叫相容)
 
   beginDraw() {
-    // 計分停留中:點一下=玩家決定繼續(回射手後方、開下一箭)
+    // 計分停留中:點一下=玩家決定繼續(開下一發)
     if (this.phase === "scored") {
       this.advanceAfterScore();
       return;
     }
     if (this.phase !== "ready") return;
+    // ★槍口紀律:準星掃到人=禁止擊發+安全提醒(取代舊「射觀眾」喜劇)
+    if (this.crowdAim) {
+      this.message = "槍口不可對人!移開準星,只朝靶射擊。";
+      this.emitEvent("muzzle-safety");
+      this.pushHud();
+      return;
+    }
     this.phase = "drawing";
     this.drawT = 0;
     this.holdAtFull = 0;
     this.emitEvent("draw-start");
-    this.message = "拉弓中……穩住,抓準風向。";
+    this.message = "屏息中……穩定時放開擊發!";
   }
 
   releaseDraw() {
     if (this.phase !== "drawing") return;
-    const preset = DIFFICULTY_PRESETS[this.difficulty];
-    this.power = clamp(this.drawT / preset.drawDuration, 0, 1);
-    if (this.power < 0.22) {
-      // 拉力不足:不算一箭,回到 ready
+    // 擊發前若準星滑到人身上=中止(安全)
+    if (this.crowdAim) {
       this.phase = "ready";
-      this.message = "拉力不足——再拉滿一點再放。";
+      this.message = "槍口對到人了——已中止擊發。移開準星再射。";
+      this.emitEvent("muzzle-safety");
       this.pushHud();
       return;
     }
     this.fireArrow();
   }
 
-  // 射向觀眾(07-12 拍板):玩具箭喜劇橋段——不計分、觀眾誇張暈倒再爬起來、提示道歉
-  fireAtCrowd() {
-    const target = this.crowdAim;
-    const impact = target.point.clone();
-    const arrow = makeArrow(1);
-    const from = BOW_TIP.clone();
-    arrow.position.copy(from);
-    this.scene.add(arrow);
-    const dist = from.distanceTo(impact);
-    this.arrowFlight = {
-      mesh: arrow,
-      from,
-      to: impact,
-      t: 0,
-      dur: dist / (30 + this.power * 26),
-      arc: dist * 0.02,
-      crowdPerson: target.person,
-    };
-    this.phase = "flying";
-    this.nockedArrow.visible = false;
-    this.emitEvent("release", { power: this.power });
-    this.message = "放箭!……咦,方向不太對?";
-    this.pushHud();
-  }
-
-  resolveCrowdHit(flight) {
-    this.scene.remove(flight.mesh); // 玩具箭彈開,不插在人身上
-    this.arrowFlight = null;
-    // 同一位觀眾重複被射:重播反應
-    const existing = this.crowdReactions.find((r) => r.group === flight.crowdPerson);
-    if (existing) existing.t = 0;
-    else this.crowdReactions.push({ group: flight.crowdPerson, t: 0 });
-
-    this.lastRing = 0;
-    this.arrowInEnd += 1;
-    this.arrowsShotTotal += 1;
-    this.latestMarker.visible = false;
-    this.emitEvent("hit-crowd");
-    this.phase = "scored";
-    this.cameraView = 0; // 留在射手後方,看得到觀眾暈倒又爬起來
-    this.message = "哎呀!射到觀眾了——還好是玩具箭!快說對不起(點一下畫面繼續)";
-    this.pushHud();
-  }
-
-  // ★判定=畫面:先算命中點,再把箭演到那個點
+  // ★判定=畫面:先算命中點(瞄準+擊發當下的晃動),再把彈丸「直線瞬達」演到那個點(無拋物線)
   fireArrow() {
-    if (this.crowdAim) {
-      this.fireAtCrowd();
-      return;
-    }
     const preset = DIFFICULTY_PRESETS[this.difficulty];
-    const powerFactor = 0.6 + this.power * 0.9; // 拉越滿→箭越快→風/晃影響越小
-    // 命中點 = 瞄準 + 放箭當下的晃動 + 風漂(可被反向瞄準補償)
+    // 屏息品質:steadyTime 前晃大、sweet 窗最穩、之後缺氧回升——擊發當下的 sway 就是散佈
     const swayNow = this.currentSway();
-    let impactX = this.aim.x + swayNow.x + this.wind.x / powerFactor;
-    let impactY = this.aim.y + swayNow.y + this.wind.y / powerFactor;
-    // 拉不滿額外下墜(箭偏弱)
-    if (this.power < 0.6) impactY -= (0.6 - this.power) * TARGET_R * 0.5;
-    // 幼兒/兒童瞄準輔助:把命中點往紅心拉一點
+    let impactX = this.aim.x + swayNow.x;
+    let impactY = this.aim.y + swayNow.y;
+    // 幼兒/兒童瞄準輔助:把命中點往靶心拉一點
     if (preset.aimAssist > 0) {
       impactX += (0 - impactX) * preset.aimAssist * 0.35;
       impactY += (TARGET_CENTER_Y - impactY) * preset.aimAssist * 0.35;
     }
     const impact = new THREE.Vector3(impactX, impactY, this.distance);
 
-    const arrow = makeArrow(1);
+    const arrow = makePellet();
     const from = BOW_TIP.clone();
     arrow.position.copy(from);
     this.scene.add(arrow);
@@ -775,32 +759,51 @@ export class ArcheryGame {
       from,
       to: impact,
       t: 0,
-      dur: dist / (30 + this.power * 26),
-      arc: dist * 0.03 * (1.25 - this.power),
+      dur: dist / 120, // 氣步槍極快,幾乎瞬達
+      arc: 0, // 10m 直線彈道,無拋物線
     };
     this.phase = "flying";
-    this.nockedArrow.visible = false;
+    this.recoilT = 0; // 觸發後座+槍口火光演出
     this.emitEvent("release", { power: this.power });
-    this.message = "放箭!";
+    this.message = "擊發!";
     this.pushHud();
   }
 
+  // 屏息晃動:ready(未屏息)晃最大;drawing 期間 steadyTime 內收斂→sweet 窗最穩→之後缺氧回升;
+  // heart=心跳脈動(高難度連心跳都看得見)。擊發當下的回傳值=彈著散佈。
   currentSway() {
     const preset = DIFFICULTY_PRESETS[this.difficulty];
-    const amp = TARGET_R * preset.swayBase * (1 + this.holdAtFull * preset.swayGrow);
+    let steadyFactor;
+    if (this.phase !== "drawing") {
+      steadyFactor = 1; // 尚未屏息:自然晃動最大
+    } else {
+      const t = this.drawT;
+      if (t < preset.steadyTime) {
+        steadyFactor = 1 - 0.85 * (t / preset.steadyTime); // 收斂:1 → 0.15
+      } else if (t < preset.steadyTime + preset.sweetTime) {
+        steadyFactor = 0.15; // sweet 窗:最穩
+      } else {
+        const over = t - (preset.steadyTime + preset.sweetTime);
+        steadyFactor = 0.15 + over * preset.swayGrow; // 缺氧:回升
+      }
+    }
+    const amp = TARGET_R * preset.swayBase * steadyFactor;
+    const heart = TARGET_R * preset.heart * 0.12 * Math.sin(this.swayT * 7.5); // 心跳脈動(垂直為主)
     return new THREE.Vector2(
       Math.sin(this.swayT * 2.1) * amp,
-      Math.sin(this.swayT * 3.3 + 1.3) * amp * 0.82,
+      Math.sin(this.swayT * 3.3 + 1.3) * amp * 0.82 + heart,
     );
   }
 
   resolveImpact() {
     const impact = this.arrowFlight.to;
-    // 把箭插在靶上
-    const planted = this.arrowFlight.mesh;
-    planted.position.copy(impact);
-    this.plantedArrows.push(planted);
-    if (this.plantedArrows.length > 12) {
+    this.scene.remove(this.arrowFlight.mesh); // 彈丸消失,靶上留彈孔
+    // 靶上留彈孔
+    const hole = makeHole();
+    hole.position.set(impact.x, impact.y, this.distance - 0.14);
+    this.scene.add(hole);
+    this.plantedArrows.push(hole);
+    if (this.plantedArrows.length > 15) {
       const old = this.plantedArrows.shift();
       this.scene.remove(old);
     }
@@ -817,6 +820,7 @@ export class ArcheryGame {
     this.arrowInEnd += 1;
     this.arrowsShotTotal += 1;
     if (ring >= 9) this.bullseyeCount += 1;
+    if (this.mode.duel) { this.duelScore[this.turnSide] += ring; this.duelShots[this.turnSide] += 1; }
 
     this.emitEvent("impact", {
       ring,
@@ -826,24 +830,31 @@ export class ArcheryGame {
       totalScore: this.totalScore,
     });
 
-    // 靶面特寫停留(07-12 拍板):不自動跳回射手後方——玩家點一下畫面才繼續下一箭
+    // 靶面特寫停留:不自動跳下一發——玩家點一下畫面才繼續
     this.phase = "scored";
     this.cameraView = 1;
-    // 最新一箭標記移到剛中的位置(脫靶時箭不在靶上,不標)
     if (ring > 0) {
-      this.latestMarker.position.set(impact.x, impact.y, this.distance - 0.07);
+      this.latestMarker.position.set(impact.x, impact.y, this.distance - 0.13);
       this.latestMarker.visible = true;
     } else {
       this.latestMarker.visible = false;
     }
     const ringText =
-      ring === 0 ? "脫靶了……調整一下再來。" : ring >= 10 ? "正中紅心!十環!" : `${ring} 環!`;
-    this.message = `${ringText}(點一下畫面,繼續下一箭)`;
+      ring === 0 ? "脫靶了……調整呼吸再來。" : ring >= 10 ? "正中靶心!十環!" : `${ring} 環!`;
+    this.message = `${ringText}(點一下畫面,繼續下一發)`;
     this.pushHud();
   }
 
   advanceAfterScore() {
     const arrowsPerEnd = this.mode.arrowsPerEnd;
+    // 雙人輪流:每發打完換手(用 duelShots 判斷是否兩人都打完)
+    if (this.mode.duel) {
+      const done = this.duelShots.p1 + this.duelShots.p2;
+      if (done >= this.mode.endCount) { this.finishMatch(); return; }
+      this.turnSide = this.turnSide === "p1" ? "p2" : "p1";
+      this.beginArrow();
+      return;
+    }
     if (this.arrowInEnd >= arrowsPerEnd) {
       this.emitEvent("end-complete", { endNumber: this.endNumber, endScore: this.endScore });
       const isLastEnd = !this.mode.endless && this.endNumber >= this.mode.endCount;
@@ -860,12 +871,27 @@ export class ArcheryGame {
 
   finishMatch() {
     this.phase = "ended";
+    if (this.mode.duel) {
+      const { p1, p2 } = this.duelScore;
+      const winner = p1 > p2 ? "P1(藍)" : p2 > p1 ? "P2(紅)" : "平手";
+      this.overlay = {
+        visible: true,
+        eyebrow: "雙人賽結束",
+        title: winner === "平手" ? `平手!${p1} : ${p2}` : `${winner} 獲勝!`,
+        text: `P1 ${p1} 分,P2 ${p2} 分。再比一場!`,
+        canResume: false,
+      };
+      this.emitEvent("match-end", { duel: true, p1, p2, winner });
+      this.message = `雙人賽結束——P1 ${p1} : P2 ${p2}。`;
+      this.pushHud();
+      return;
+    }
     const possible = this.mode.endless ? this.arrowsShotTotal * 10 : this.mode.endCount * this.mode.arrowsPerEnd * 10;
     const pct = possible > 0 ? this.totalScore / possible : 0;
     const grade = pct >= 0.9 ? "A+" : pct >= 0.78 ? "A" : pct >= 0.62 ? "B" : pct >= 0.45 ? "C" : "D";
     const detail =
       this.modeId === "bullseye"
-        ? `紅心 ${this.bullseyeCount} / ${this.arrowsShotTotal} 箭`
+        ? `內圈 ${this.bullseyeCount} / ${this.arrowsShotTotal} 發`
         : `總分 ${this.totalScore} / ${possible}`;
     this.overlay = {
       visible: true,
@@ -884,7 +910,7 @@ export class ArcheryGame {
     if (this.overlay.visible) {
       this.resume();
     } else {
-      this.overlay = { visible: true, eyebrow: "暫停中", title: "深呼吸一下", text: "準備好再繼續射箭。", canResume: true };
+      this.overlay = { visible: true, eyebrow: "暫停中", title: "深呼吸一下", text: "準備好再繼續射擊。", canResume: true };
       this.pushHud();
     }
   }
@@ -932,52 +958,27 @@ export class ArcheryGame {
   update(delta) {
     this.time += delta;
     this.swayT += delta;
+    this.recoilT += delta;
     const paused = this.overlay.visible;
-
-    // 風旗飄動 + 依風向擺角
-    if (this.flagCloth) {
-      const windMag = this.wind.length();
-      this.flagCloth.rotation.y = Math.sin(this.time * 6) * 0.25 + clamp(this.wind.x * 6, -1.1, 1.1);
-      this.flagCloth.scale.x = 0.7 + Math.min(1, windMag * 3);
-    }
 
     if (!paused) {
       if (this.phase === "ready" || this.phase === "drawing") {
         this.updateAim(delta);
       }
       if (this.phase === "drawing") {
-        const preset = DIFFICULTY_PRESETS[this.difficulty];
-        this.drawT += delta;
-        this.power = clamp(this.drawT / preset.drawDuration, 0, 1);
-        if (this.power >= 1) this.holdAtFull += delta;
-        // 鍵盤:方向鍵微調瞄準
+        this.drawT += delta; // 屏息秒數;currentSway 依此算穩定度
       }
       if (this.phase === "flying") this.updateFlight(delta);
-      // scored:停在靶面特寫等玩家點擊(beginDraw 處理),不自動進下一箭
+      // scored:停在靶面特寫等玩家點擊,不自動進下一發
     }
 
-    // 最新一箭標記脈動
+    // 最新一發標記脈動
     if (this.latestMarker && this.latestMarker.visible) {
       const pulse = 1 + Math.sin(this.time * 5) * 0.18;
       this.latestMarker.scale.setScalar(pulse);
     }
 
-    // 被射中的觀眾:誇張向後暈倒(繞腳跟)→躺一下→爬起來,全程喜劇無傷
-    for (const r of this.crowdReactions) {
-      r.t += delta;
-      const fall = clamp(r.t / 0.35, 0, 1);
-      const recover = clamp((r.t - 1.8) / 0.6, 0, 1);
-      r.group.rotation.x = -1.25 * fall * (1 - recover);
-    }
-    this.crowdReactions = this.crowdReactions.filter((r) => {
-      if (r.t >= 2.6) {
-        r.group.rotation.x = 0;
-        return false;
-      }
-      return true;
-    });
-
-    // 鍵盤輸入(空白鍵拉弓/放箭、方向鍵瞄準、V 視角)
+    // 鍵盤輸入(空白鍵屏息/擊發、方向鍵微調瞄準、V 視角)
     this.handleKeys(delta);
 
     this.updateArcherPose();
@@ -1012,7 +1013,7 @@ export class ArcheryGame {
   updateAim(delta) {
     if (!this.pointerNDC) return;
     this.raycaster.setFromCamera(this.pointerNDC, this.camera);
-    // 先看有沒有指到觀眾(可以射觀眾——玩具箭,不計分,喜劇反應)
+    // ★槍口紀律:準星掃到相鄰選手=標記 crowdAim(beginDraw/releaseDraw 會擋下擊發+安全提醒)
     const crowdHits = this.crowd ? this.raycaster.intersectObjects(this.crowd.children, true) : [];
     if (crowdHits.length) {
       let root = crowdHits[0].object;
@@ -1033,16 +1034,12 @@ export class ArcheryGame {
     if (!f) return;
     f.t += delta / f.dur;
     const t = clamp(f.t, 0, 1);
-    const pos = new THREE.Vector3().lerpVectors(f.from, f.to, t);
-    pos.y += Math.sin(Math.PI * t) * f.arc; // 拋物線視覺
-    // 朝向 = 切線方向
+    const pos = new THREE.Vector3().lerpVectors(f.from, f.to, t); // 直線(arc=0)
     const ahead = new THREE.Vector3().lerpVectors(f.from, f.to, Math.min(1, t + 0.02));
-    ahead.y += Math.sin(Math.PI * Math.min(1, t + 0.02)) * f.arc;
     f.mesh.position.copy(pos);
     f.mesh.lookAt(ahead);
     if (f.t >= 1) {
-      if (f.crowdPerson) this.resolveCrowdHit(f);
-      else this.resolveImpact();
+      this.resolveImpact();
     }
   }
 
@@ -1051,47 +1048,38 @@ export class ArcheryGame {
     this.reticle.visible = aiming;
     if (!aiming) return;
     if (this.crowdAim) {
-      // 指到觀眾:準星貼在他身上(近距離,不放大)
+      // 準星掃到人:準星轉紅貼在他身上(視覺警告,擊發會被擋)
       this.reticle.position.copy(this.crowdAim.point);
       this.reticle.position.z -= 0.15;
-      this.reticle.scale.setScalar(Math.max(1, this.crowdAim.point.z / 7));
+      this.reticle.scale.setScalar(1.3);
+      for (const c of this.reticle.children) c.material.color.setHex(0xff3020);
       this.reticle.lookAt(this.camera.position);
       return;
     }
+    for (const c of this.reticle.children) c.material.color.setHex(0xffe14d);
     const sway = this.currentSway();
     this.reticleOffset.copy(sway);
-    this.reticle.position.set(this.aim.x + sway.x, this.aim.y + sway.y, this.distance - 0.06);
-    this.reticle.scale.setScalar(Math.max(1, this.distance / 7)); // 遠靶時放大,不然 22m 外小到看不見
+    this.reticle.position.set(this.aim.x + sway.x, this.aim.y + sway.y, this.distance - 0.12);
+    this.reticle.scale.setScalar(1);
     this.reticle.lookAt(this.camera.position);
   }
 
   updateArcherPose() {
-    // 搭箭的弓弦與箭隨拉弓後移;右臂拉、左臂持弓
-    const drawFrac = this.phase === "drawing" ? this.power : this.phase === "ready" ? 0 : 0;
-    const back = drawFrac * 0.36;
-    // 弦中點後移
-    const pts = this.bow.stringGeo.attributes.position;
-    pts.setXYZ(1, 0, 0, 0.02 + back * 0.6);
-    pts.needsUpdate = true;
-    // 搭箭:未放箭時顯示,位置從弓往後拉
-    if (this.phase === "ready" || this.phase === "drawing") {
-      this.nockedArrow.visible = true;
-      this.nockedArrow.position.set(BOW_TIP.x, BOW_TIP.y, BOW_TIP.z - back);
-      this.nockedArrow.rotation.set(0, 0, 0);
-    } else {
-      this.nockedArrow.visible = false;
-    }
-    // 拉弓姿勢隨 draw:上臂維持水平,前臂沿箭線往「後」折(07-12 拍板:不是往上拉是往後拉),
-    // 拉滿時前臂幾乎折平=手拉回臉頰旁;左臂持弓打直,腰微前傾
+    // 後座:擊發後 0.25s 內槍身+上身微微後頂再回穩
+    const recoil = this.recoilT < 0.25 ? (1 - this.recoilT / 0.25) * 0.12 : 0;
+    // 屏息時上身極輕微前傾穩定(drawT 越久越沉)
+    const steady = this.phase === "drawing" ? Math.min(1, this.drawT / 0.6) : 0;
     if (this.archer) {
-      this.archer.rightArm.pivot.rotation.x = -Math.PI / 2 + 0.08;
-      this.archer.rightArm.joint.rotation.x = -0.7 - drawFrac * 2.0;
-
-      this.archer.leftArm.pivot.rotation.x = -Math.PI / 2;
-      this.archer.leftArm.joint.rotation.x = -0.08;
-      this.archer.rig.rotation.x = drawFrac * 0.05;
-      // 弓略隨瞄準左右轉
-      this.bow.group.rotation.y = clamp((this.aim.x) * 0.12, -0.2, 0.2);
+      this.archer.rightArm.pivot.rotation.x = -Math.PI / 2 + 0.05;
+      this.archer.rightArm.joint.rotation.x = -0.95;
+      this.archer.leftArm.pivot.rotation.x = -Math.PI / 2 + 0.15;
+      this.archer.leftArm.joint.rotation.x = -0.2;
+      this.archer.rig.rotation.x = steady * 0.03 - recoil * 0.5;
+    }
+    if (this.rifle) {
+      // 槍隨瞄準左右轉一點+後座向後頂
+      this.rifle.group.rotation.y = clamp(this.aim.x * 0.1, -0.18, 0.18);
+      this.rifle.group.position.set(BOW_TIP.x, BOW_TIP.y, BOW_TIP.z - recoil);
     }
   }
 
@@ -1099,28 +1087,25 @@ export class ArcheryGame {
     let desiredPos;
     let desiredLook;
     const aiming = this.phase === "ready" || this.phase === "drawing";
-    const centerLook = new THREE.Vector3(0, TARGET_CENTER_Y, this.distance);
 
     if (aiming || this.cameraView === 0) {
-      // 過肩瞄準視角(核心,鎖):相機在右肩後上方,射手偏左、靶與準星在畫面中央不被身體擋住
-      desiredPos = new THREE.Vector3(this.aim.x * 0.12 + 0.9, 2.15, -2.3);
-      desiredLook = new THREE.Vector3(this.aim.x * 0.75, TARGET_CENTER_Y, this.distance);
+      // 過肩瞄準視角(核心,鎖):相機在右肩後上方,射手偏左、靶與準星在畫面中央
+      desiredPos = new THREE.Vector3(this.aim.x * 0.1 + 0.55, 1.95, -1.9);
+      desiredLook = new THREE.Vector3(this.aim.x * 0.7, TARGET_CENTER_Y, this.distance);
     } else if (this.cameraView === 1) {
-      // 靶面特寫(07-12 拍板再拉近:靶面幾乎滿框,看清每支箭)
-      // 看點抬高→靶在畫面下半,不被頂部計分板/字幕擋住(07-12 拍板;數值隨靶心=1.38 重校)
-      desiredPos = new THREE.Vector3(0, TARGET_CENTER_Y - 0.35, this.distance - 2.3);
-      desiredLook = new THREE.Vector3(0, TARGET_CENTER_Y - 0.03, this.distance);
+      // 靶面特寫(靶面幾乎滿框,看清每個彈孔;10m 靶小,要更近)
+      desiredPos = new THREE.Vector3(0, TARGET_CENTER_Y - 0.15, this.distance - 1.1);
+      desiredLook = new THREE.Vector3(0, TARGET_CENTER_Y - 0.02, this.distance);
     } else if (this.cameraView === 2) {
       // 高空俯瞰
-      desiredPos = new THREE.Vector3(2.4, 15, this.distance * 0.5);
+      desiredPos = new THREE.Vector3(2.4, 12, this.distance * 0.5);
       desiredLook = new THREE.Vector3(0, 0.4, this.distance * 0.5);
     } else {
-      // 側面轉播(看箭道弧線)
-      desiredPos = new THREE.Vector3(7.5, 3.4, this.distance * 0.5);
+      // 側面轉播(看整條射道)
+      desiredPos = new THREE.Vector3(5.5, 3.0, this.distance * 0.5);
       desiredLook = new THREE.Vector3(0, 1.4, this.distance * 0.5);
     }
 
-    // 飛行中若在複查視角,側面看弧線更好
     this.camPos.lerp(desiredPos, 1 - Math.exp(-delta * 3.0));
     this.camLook.lerp(desiredLook, 1 - Math.exp(-delta * 3.0));
     this.camera.position.copy(this.camPos);
@@ -1135,12 +1120,13 @@ export class ArcheryGame {
     const phaseLabels = {
       menu: "主選單",
       ready: "瞄準",
-      drawing: "拉弓",
-      flying: "放箭",
+      drawing: "屏息",
+      flying: "擊發",
       scored: "計分",
       ended: "結束",
     };
-    const windMag = this.wind.length() / (TARGET_R * 0.32);
+    // 屏息品質:sweet 窗=穩定條滿;steadiness 直接給 HUD 大條用
+    const steadiness = clamp(1 - this.currentSway().length() / (TARGET_R * 0.32), 0, 1);
     this.onHudUpdate({
       totalScore: this.totalScore,
       endScore: this.endScore,
@@ -1153,28 +1139,23 @@ export class ArcheryGame {
       distanceLabel: `${this.distance} m`,
       phaseLabel: phaseLabels[this.phase] || "",
       message: this.message,
-      drawPower: this.power,
-      canFire: this.power >= 0.22,
-      steadiness: 1 - swayNorm,
-      windX: this.wind.x,
-      windY: this.wind.y,
-      windStrength: clamp(windMag, 0, 1),
-      windText: this.windText(),
+      drawPower: steadiness, // 大條=穩定度(取代拉弓力度)
+      canFire: this.phase === "drawing" && !this.crowdAim,
+      steadiness,
+      windText: this.mode.duel ? `P1 ${this.duelScore.p1} : P2 ${this.duelScore.p2}` : this.steadyText(),
       lastRing: this.lastRing,
       bullseyeCount: this.bullseyeCount,
       overlay: { ...this.overlay },
     });
   }
 
-  windText() {
-    const cross = this.wind.x;
-    const vert = this.wind.y;
-    const mag = this.wind.length() / TARGET_R;
-    if (mag < 0.03) return "幾乎無風";
-    const dir = cross > 0.01 ? "→ 右風" : cross < -0.01 ? "← 左風" : "";
-    const ud = vert > 0.01 ? " ↑上升" : vert < -0.01 ? " ↓下沉" : "";
-    const level = mag > 0.22 ? "強" : mag > 0.1 ? "中" : "微";
-    return `${level}風 ${dir}${ud}(往反方向瞄準補償)`;
+  steadyText() {
+    if (this.phase !== "drawing") return "按住屏息穩定準星";
+    const preset = DIFFICULTY_PRESETS[this.difficulty];
+    const t = this.drawT;
+    if (t < preset.steadyTime) return "屏息中……準星正在收斂";
+    if (t < preset.steadyTime + preset.sweetTime) return "★穩定窗!就是現在放開擊發!";
+    return "屏太久了——準星回晃,快擊發或重新瞄準";
   }
 
   // ---------- 存讀檔 ----------
