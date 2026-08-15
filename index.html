@@ -249,6 +249,22 @@
       var psLast = parseInt(localStorage.getItem(psK) || '0', 10);
       if (Date.now() - psLast > 600000) { localStorage.setItem(psK, String(Date.now())); window.psPing('shooting3d'); }
     } catch (_) { window.psPing('shooting3d'); }
+      // 真實停留(skill play-stats-dwell):開頁 → 第一次離開,回報一發 -dwell 帶秒數。
+      // 開啟次數只看「被點幾次」,停留時間才看得出「孩子真的待多久、哪一關抓得住人」。
+      // ★ 只送這一發:手機鎖屏時常只送得出佇列第一個 beacon,同一刻連發兩個會有一發被丟掉。
+      (function () {
+        var _dwT0 = Date.now(), _dwSent = false;
+        function _dwLeave() {
+          if (_dwSent) return; _dwSent = true;
+          var sec = Math.round((Date.now() - _dwT0) / 1000);
+          if (sec < 3 || sec > 1800) return;   // 誤觸不算、掛整天的背景分頁也不算
+          window.psPing('shooting3d-dwell', sec);
+        }
+        addEventListener('pagehide', _dwLeave);
+        document.addEventListener('visibilitychange', function () {
+          if (document.visibilityState === 'hidden') _dwLeave();
+        });
+      })();
     </script>
   </body>
 </html>
